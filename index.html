@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rear Shade Garden</title>
+<style>
+:root{--green-dark:#1a472a;--green-mid:#2d6a3f;--green-pale:#d4e4cd;--cream:#faf8f5;--brown-dark:#3d2c1e;--brown-mid:#6b5240;--white:#fff;--gray-light:#e8e5e0;--gray-mid:#b0a99f;--shadow:rgba(0,0,0,.12)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--cream);color:var(--brown-dark);min-height:100vh}
+header{background:var(--green-dark);color:var(--white);padding:16px 24px 0}
+header h1{font-size:20px;font-weight:600;margin-bottom:2px}
+header .subtitle{font-size:13px;color:var(--green-pale);margin-bottom:14px}
+.tabs{display:flex;gap:2px}
+.tab{padding:10px 22px;background:var(--green-mid);color:var(--green-pale);border:none;border-radius:8px 8px 0 0;cursor:pointer;font-size:14px;font-weight:500;transition:background .2s,color .2s}
+.tab:hover{background:#3a7d50}
+.tab.active{background:var(--cream);color:var(--green-dark);font-weight:600}
+main{max-width:none;margin:0;padding:10px 12px}
+.panel{display:none}.panel.active{display:block}
+.garden-layout{display:flex;gap:12px;align-items:stretch}
+.garden-map-container{flex:1;background:var(--white);border-radius:12px;padding:8px;box-shadow:0 2px 8px var(--shadow);min-width:0;position:relative}
+.garden-map-container h2{font-size:14px;color:var(--green-dark);margin-bottom:6px}
+.garden-map-container svg{width:100%;height:calc(100vh - 190px);max-height:calc(100vh - 190px);display:block}
+.legend-panel{width:280px;flex-shrink:0;background:var(--white);border-radius:12px;padding:12px;box-shadow:0 2px 8px var(--shadow);max-height:calc(100vh - 145px);overflow-y:auto}
+.legend-panel h3{font-size:14px;color:var(--green-dark);margin-bottom:10px;border-bottom:2px solid var(--green-pale);padding-bottom:6px}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;border-radius:4px;padding:4px 6px;transition:background .15s}
+.legend-item:hover{background:var(--green-pale)}
+.legend-swatch{width:18px;height:18px;border-radius:50%;flex-shrink:0;border:1.5px solid rgba(0,0,0,.15)}
+.legend-num{font-weight:600;width:18px;text-align:right;flex-shrink:0;color:var(--brown-mid)}
+.legend-name{color:var(--brown-dark);line-height:1.3}
+.plant-tooltip{position:fixed;z-index:1000;background:var(--white);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.18);width:300px;pointer-events:none;opacity:0;transition:opacity .15s;overflow:hidden}
+.plant-tooltip.visible{opacity:1}
+.tooltip-img-wrap{width:100%;aspect-ratio:1/1;background:var(--green-pale);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tooltip-img-wrap img{width:100%;height:100%;object-fit:cover}
+.tooltip-img-placeholder{font-size:48px;opacity:.4}
+.tooltip-body{padding:12px 14px}
+.tooltip-body h4{font-size:15px;color:var(--green-dark);margin-bottom:1px}
+.tooltip-body .botanical{font-style:italic;color:var(--brown-mid);font-size:12px;margin-bottom:8px}
+.tooltip-body .detail-grid{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:12px}
+.tooltip-body .detail-label{color:var(--gray-mid);font-weight:500}
+.tooltip-body .detail-value{color:var(--brown-dark)}
+.tooltip-badges,.plant-card-badges{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.badge{font-size:10px;padding:2px 6px;border-radius:10px;font-weight:600;line-height:1.4}
+.badge-native{background:#d4e4cd;color:#1a472a}
+.badge-evergreen{background:#2d6a3f;color:#fff}
+.badge-pollinator{background:#fff3cd;color:#856404}
+.badge-deer{background:#e8d5e8;color:#5a2d5a}
+.badge-fragrant{background:#fce4ec;color:#880e4f}
+.plant-guide-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.plant-card{background:var(--white);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px var(--shadow);transition:box-shadow .2s}
+.plant-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.plant-card-img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;background:var(--green-pale)}
+.plant-card-img-placeholder{width:100%;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;font-size:56px;opacity:.3}
+.plant-card-body{padding:14px 16px}
+.plant-card-header{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.plant-card-num{background:var(--green-dark);color:var(--white);width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.plant-card-name{font-size:16px;font-weight:600;color:var(--green-dark)}
+.plant-card-botanical{font-style:italic;color:var(--brown-mid);font-size:13px;margin-bottom:10px}
+.plant-card-details{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px}
+.plant-card-details dt{color:var(--gray-mid);font-weight:500}
+.plant-card-details dd{color:var(--brown-dark)}
+.plant-card-desc{margin-top:10px;font-size:13px;line-height:1.5;color:var(--brown-mid);border-top:1px solid var(--gray-light);padding-top:10px}
+.estimate-header{background:var(--white);border-radius:12px;padding:20px 24px;box-shadow:0 2px 8px var(--shadow);margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px}
+.estimate-header h2{font-size:22px;color:var(--green-dark)}
+.estimate-header .company{font-size:14px;color:var(--brown-mid);margin-top:4px}
+.estimate-meta{text-align:right;font-size:13px;color:var(--brown-mid)}
+.estimate-meta strong{color:var(--brown-dark)}
+.estimate-section{background:var(--white);border-radius:12px;box-shadow:0 2px 8px var(--shadow);margin-bottom:16px;overflow:hidden}
+.estimate-section h3{background:var(--green-dark);color:var(--white);padding:10px 20px;font-size:14px;font-weight:600}
+.estimate-table{width:100%;border-collapse:collapse}
+.estimate-table th{text-align:left;padding:8px 16px;font-size:12px;color:var(--gray-mid);font-weight:600;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--gray-light)}
+.estimate-table th:nth-child(2),.estimate-table th:nth-child(3),.estimate-table th:nth-child(4){text-align:right}
+.estimate-table td{padding:8px 16px;font-size:13px;border-bottom:1px solid #f0ede8}
+.estimate-table td:nth-child(2),.estimate-table td:nth-child(3),.estimate-table td:nth-child(4){text-align:right;font-variant-numeric:tabular-nums}
+.estimate-table tr:last-child td{border-bottom:none}
+.estimate-table .subtotal-row td{font-weight:600;border-top:2px solid var(--green-pale);background:#f8f7f4}
+.estimate-total{background:var(--green-dark);border-radius:12px;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;color:var(--white);box-shadow:0 2px 8px var(--shadow)}
+.estimate-total .label{font-size:18px;font-weight:600}
+.estimate-total .amount{font-size:28px;font-weight:700}
+.taxable-note{font-size:11px;color:var(--gray-mid);padding:8px 16px}
+.plant-marker{cursor:grab;touch-action:none;transition:transform .15s}
+.plant-marker.dragging{cursor:grabbing}
+.plant-marker:hover circle:nth-child(2){stroke:var(--green-dark);stroke-width:2.8;filter:brightness(.82)}
+.plant-marker.hl circle:nth-child(2){stroke:#111;stroke-width:4.2;filter:brightness(.78)}
+.plant-marker.hl .marker-ring{opacity:0}
+.plant-marker.selected circle:nth-child(2){stroke:#111!important;stroke-width:2.5}
+.delete-handle{display:none;pointer-events:all}
+.plant-marker:hover .delete-handle,.plant-marker.selected .delete-handle{display:block}
+.delete-handle{cursor:pointer;opacity:.9}
+.delete-dot{fill:#fff;stroke:#111;stroke-width:2.2}
+.delete-x-line{stroke:#111;stroke-width:2.6;stroke-linecap:round}
+.delete-handle:hover .delete-dot{fill:#b00020;stroke:#7a0016;stroke-width:3}
+.delete-handle:hover .delete-x-line{stroke:#fff}
+.marker-ring{opacity:0;transition:opacity .12s}
+.area-box{cursor:move}
+.area-box rect{stroke-width:2.2}
+.area-box .area-main{fill-opacity:.2}
+.area-box .area-label{font-size:22px;font-weight:700;fill:#1f2a1f;paint-order:stroke;stroke:#fff;stroke-width:2.5;pointer-events:none;text-anchor:middle;dominant-baseline:middle}
+.area-box .resize-handle{fill:#fff;stroke:#243024;stroke-width:1.8;cursor:nwse-resize;display:none}
+.area-box.selected .resize-handle,.area-box.adjusting .resize-handle{display:block}
+.area-box:hover .area-main{fill-opacity:.28}
+.area-box.selected .area-main{fill-opacity:.34;stroke-width:2.8}
+.area-lawn .area-main{fill:#9ecf91;stroke:#376a3e;fill-opacity:.22}
+.lawn-border-path{fill:none;stroke:#2f6b45;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;opacity:.8;pointer-events:stroke;cursor:copy}
+.lawn-border-label{font-size:24px;font-weight:700;letter-spacing:.8px;fill:#244f32;paint-order:stroke;stroke:#f3fff2;stroke-width:4;pointer-events:all;cursor:move;user-select:none}
+.lawn-point{fill:#fff;stroke:#1f5a35;stroke-width:2;cursor:grab;display:none}
+#lawn-border-layer.editing .lawn-point{display:block}
+.lawn-point.active{fill:#e8f6ec;stroke:#103f24;stroke-width:2.8}
+.lawn-point:hover{fill:#f2fff5}
+.mock-line{stroke:#594f42;stroke-width:4;stroke-linecap:round;opacity:.85;pointer-events:stroke}
+.mock-line.back{stroke:#3f5e45;stroke-width:3.5;opacity:.82}
+.mock-line-end{fill:#fff;stroke:#2f2f2f;stroke-width:2;cursor:move;display:none}
+.mock-line-group.active .mock-line-end,.mock-line-group.adjusting .mock-line-end{display:block}
+.mock-line-end.back{stroke:#2f5a3c}
+.mock-line-end:hover{fill:#f8faf8}
+.area-patio .area-main{fill:#d2c7b5;stroke:#6f6658}
+.area-garage .area-main{fill:#bfc7ce;stroke:#5a6670}
+.area-shed .area-main{fill:#b29374;stroke:#6a4b33}
+.area-woodlog .area-main{fill:#a47c54;stroke:#5f452d}
+.calib-btn{border:1px solid var(--gray-light);background:#fff;border-radius:6px;padding:4px 7px;font-size:11px;cursor:pointer;color:var(--brown-dark)}
+.calib-btn:hover{background:#f7f7f7}
+.map-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 2px 8px}
+.map-tools{display:flex;align-items:center;gap:8px}
+.map-tools-left{display:flex;align-items:center;gap:8px}
+.undo-btn{background:#fff;color:#1f2a1f;border:1px solid var(--gray-light);border-radius:10px;padding:8px 12px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.undo-btn:hover{background:#f5f7f5}
+.undo-btn:disabled{opacity:.45;cursor:not-allowed}
+.add-plant-btn{background:var(--green-dark);color:#fff;border:none;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:700;letter-spacing:.1px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.18)}
+.add-plant-btn:hover{background:#205835}
+.add-note-btn{background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:10px;padding:9px 12px;font-size:13px;font-weight:700;letter-spacing:.1px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.add-note-btn:hover{background:#f1f8f3}
+.note-item{cursor:move}
+.note-box{fill:#fffde8;stroke:#6a6243;stroke-width:1.8;rx:10;ry:10;filter:drop-shadow(0 1px 2px rgba(0,0,0,.15))}
+.note-item.selected .note-box{stroke:#1f2a1f;stroke-width:2.4}
+.note-drag-handle{fill:transparent;cursor:move}
+.note-resize-handle{fill:#fff;stroke:#3a341d;stroke-width:1.8;cursor:nwse-resize;display:none}
+.note-item.selected .note-resize-handle,.note-item.adjusting .note-resize-handle{display:block}
+.note-fo{pointer-events:all}
+.note-editor{width:100%;height:100%;padding:6px 10px 2px;box-sizing:border-box;font-size:22px;font-weight:400;line-height:1.2;color:#2f2c21;background:transparent;outline:none;overflow:hidden;white-space:pre-wrap;word-break:break-word;font-family:inherit}
+.settings-wrap{position:relative}
+.settings-btn{width:34px;height:34px;border:1px solid var(--gray-light);background:#fff;border-radius:10px;cursor:pointer;font-size:18px;line-height:1;color:#444;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.settings-menu{position:absolute;top:38px;right:0;background:#fff;border:1px solid var(--gray-light);border-radius:10px;box-shadow:0 8px 20px rgba(0,0,0,.16);padding:6px;display:none;min-width:140px}
+.settings-menu.open{display:block}
+.settings-item{display:block;width:100%;text-align:left;border:none;background:#fff;border-radius:6px;padding:7px 8px;font-size:12px;cursor:pointer}
+.settings-item:hover{background:#f5f5f5}
+.clone-menu{position:fixed;z-index:1300;display:none;padding:0;background:transparent;border:none;box-shadow:none}
+.clone-menu.open{display:block}
+.clone-text-btn{display:inline-flex;align-items:center;justify-content:center;height:22px;border:1px solid #111;background:#fff;border-radius:999px;cursor:pointer;padding:0 8px;box-shadow:0 2px 8px rgba(0,0,0,.14);font-size:10px;line-height:1;font-weight:600}
+.clone-text-btn:hover{background:#f2f2f2}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:1200}
+.modal-backdrop.open{display:flex}
+.plant-modal{width:min(520px,92vw);max-height:82vh;overflow:auto;background:#fff;border-radius:12px;padding:12px 12px 10px;box-shadow:0 20px 40px rgba(0,0,0,.28)}
+.plant-modal h3{font-size:16px;color:var(--green-dark);margin-bottom:8px}
+.plant-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 10px;max-height:none;overflow:visible;border:1px solid var(--gray-light);border-radius:8px;padding:6px}
+.plant-option{display:flex;align-items:center;gap:8px;padding:6px;border-radius:6px;font-size:12px}
+.plant-option:hover{background:#f6fbf6}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+.modal-actions .calib-btn{padding:8px 12px;font-size:13px;font-weight:600;border-radius:8px}
+.plant-option input[type="radio"]{transform:scale(1.15)}
+.hint-pill{font-size:11px;background:#fff6d8;color:#7d6200;border:1px solid #f2df9f;border-radius:999px;padding:3px 8px}
+@media(max-width:900px){main{padding:8px}.garden-layout{flex-direction:column}.garden-map-container svg{height:auto;max-height:none}.legend-panel{width:100%;max-height:none}.plant-guide-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Rear Shade Garden</h1>
+  <p class="subtitle">Landscape design by Laura McGrath, Cultivar, Inc.</p>
+  <div class="tabs">
+    <button class="tab active" data-tab="design">Garden Design</button>
+    <button class="tab" data-tab="plants">Plant Guide</button>
+    <button class="tab" data-tab="estimate">Estimate</button>
+  </div>
+</header>
+<main>
+  <div class="panel active" id="panel-design">
+    <div class="garden-layout">
+      <div class="garden-map-container">
+        <div class="map-toolbar">
+          <div class="map-tools-left">
+            <button class="undo-btn" id="undo-btn" type="button" disabled>Undo</button>
+          </div>
+          <div class="map-tools">
+            <button class="add-plant-btn" id="add-plant" type="button">+ Add Plant</button>
+            <button class="add-note-btn" id="add-note" type="button">+ Add Note</button>
+            <span class="hint-pill" id="add-hint" style="display:none">Click map to place</span>
+            <div class="settings-wrap">
+              <button class="settings-btn" id="settings-btn" type="button" aria-label="Settings">⋯</button>
+              <div class="settings-menu" id="settings-menu">
+                <button class="settings-item" id="import-json" type="button">Import JSON</button>
+                <button class="settings-item" id="export-json" type="button">Export JSON</button>
+              </div>
+            </div>
+            <input id="import-json-file" type="file" accept="application/json,.json" style="display:none">
+          </div>
+        </div>
+        <svg viewBox="0 0 2382 1470" xmlns="http://www.w3.org/2000/svg" id="garden-svg">
+          <!-- Curved transition line between planting beds and lawn -->
+          <g id="lawn-border-layer">
+            <path id="lawn-border-path" class="lawn-border-path" d="M250 1130 C 430 1000, 620 900, 840 835 C 1040 775, 1260 760, 1490 790 C 1710 820, 1940 900, 2130 1010 C 2210 1060, 2280 1120, 2330 1175"/>
+            <g id="lawn-border-points"></g>
+            <text id="lawn-border-label" class="lawn-border-label" x="1490" y="1000">LAWN</text>
+          </g>
+          <!-- Adjustable guide lines for hand-drawn borders -->
+          <g id="mock-lines-layer"></g>
+          <!-- Editable hardscape + lawn overlays -->
+          <g id="site-areas"></g>
+          <!-- Notes layer -->
+          <g id="note-layer"></g>
+          <!-- Interactive plant markers overlaid on the image -->
+          <g id="plant-markers"></g>
+        </svg>
+      </div>
+      <div class="legend-panel">
+        <h3>Plant Key</h3>
+        <div id="legend-list"></div>
+      </div>
+    </div>
+  </div>
+  <div class="panel" id="panel-plants">
+    <div class="plant-guide-grid" id="plant-guide-grid"></div>
+  </div>
+  <div class="panel" id="panel-estimate">
+    <div class="estimate-header">
+      <div>
+        <h2>Project Estimate</h2>
+        <p class="company">Cultivar, Inc. - 85 Howard Street, Waltham, MA 02451</p>
+        <p class="company">617-584-7989 - laura@cultivargardens.com</p>
+      </div>
+      <div class="estimate-meta">
+        <div>Date: <strong>4/13/2026</strong></div>
+        <div>Estimate #: <strong>10012042</strong></div>
+        <div>Client: <strong>Connie Gao &amp; Ben Renner</strong></div>
+      </div>
+    </div>
+    <div class="estimate-section">
+      <h3>Labor &amp; Design</h3>
+      <table class="estimate-table">
+        <thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>Total</th></tr></thead>
+        <tbody>
+          <tr><td>Crew digging, transplanting, adding compost (4 people)</td><td>8</td><td>$182.00</td><td>$1,456.00</td></tr>
+          <tr><td>Crew planting (4 people)</td><td>8</td><td>$182.00</td><td>$1,456.00</td></tr>
+          <tr><td>Design time</td><td>6</td><td>$135.00</td><td>$810.00</td></tr>
+          <tr><td>Laura - plant selection and placement</td><td>4</td><td>$120.00</td><td>$480.00</td></tr>
+          <tr class="subtotal-row"><td colspan="3">Labor Subtotal</td><td>$4,202.00</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="estimate-section">
+      <h3>Plants</h3>
+      <table class="estimate-table">
+        <thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>Total</th></tr></thead>
+        <tbody>
+          <tr><td>Hydrangea arborescens 'Invincibelle Smooth' 5 gal</td><td>3</td><td>$85.00</td><td>$255.00</td></tr>
+          <tr><td>Acer palmatum 'Koto no Ito' #10 (or part shade choice)</td><td>1</td><td>$450.00</td><td>$450.00</td></tr>
+          <tr><td>Azalea 'White Lights' #5</td><td>2</td><td>$68.00</td><td>$136.00</td></tr>
+          <tr><td>Pieris japonica #5</td><td>2</td><td>$58.00</td><td>$116.00</td></tr>
+          <tr><td>Japanese Ghost Fern</td><td>6</td><td>$20.00</td><td>$120.00</td></tr>
+          <tr><td>Eupatorium</td><td>15</td><td>$18.00</td><td>$270.00</td></tr>
+          <tr><td>Astilbe 'Snowdrift' (blooms late June-July)</td><td>4</td><td>$18.00</td><td>$72.00</td></tr>
+          <tr><td>Astilbe 'Deutschland' (blooms late June-July)</td><td>5</td><td>$18.00</td><td>$90.00</td></tr>
+          <tr><td>Hosta assortment</td><td>9</td><td>$18.00</td><td>$162.00</td></tr>
+          <tr><td>Hosta 'Blue Angel'</td><td>3</td><td>$24.00</td><td>$72.00</td></tr>
+          <tr><td>Cimicifuga</td><td>3</td><td>$26.00</td><td>$78.00</td></tr>
+          <tr><td>Bleeding Heart spectabilis alba</td><td>3</td><td>$18.00</td><td>$54.00</td></tr>
+          <tr><td>Thalictrum 'Black Stocking' or green form</td><td>1</td><td>$18.00</td><td>$18.00</td></tr>
+          <tr><td>Tiarella (foamflower) #1</td><td>9</td><td>$15.00</td><td>$135.00</td></tr>
+          <tr><td>Penstemon digitalis (mail order)</td><td>1</td><td>$45.00</td><td>$45.00</td></tr>
+          <tr><td>22. Thuja Green Giant, small 6'</td><td>1</td><td>$210.00</td><td>$210.00</td></tr>
+          <tr class="subtotal-row"><td colspan="3">Plants Subtotal</td><td>$2,283.00</td></tr>
+        </tbody>
+      </table>
+      <p class="taxable-note">All plant items are taxable (6.25% MA sales tax)</p>
+    </div>
+    <div class="estimate-section">
+      <h3>Materials &amp; Delivery</h3>
+      <table class="estimate-table">
+        <thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>Total</th></tr></thead>
+        <tbody>
+          <tr><td>Delivery fee</td><td>2</td><td>$125.00</td><td>$250.00</td></tr>
+          <tr><td>Leaf mulch, 8 yards installed</td><td>1</td><td>$1,270.00</td><td>$1,270.00</td></tr>
+          <tr><td>Biotone, lime</td><td>1</td><td>$60.00</td><td>$60.00</td></tr>
+          <tr class="subtotal-row"><td colspan="3">Materials Subtotal</td><td>$1,580.00</td></tr>
+        </tbody>
+      </table>
+      <p class="taxable-note">Mulch, biotone, and lime are taxable</p>
+    </div>
+    <div class="estimate-section">
+      <h3>Tax</h3>
+      <table class="estimate-table"><tbody>
+        <tr><td>MA Sales Tax (6.25% on taxable items)</td><td></td><td></td><td>$225.81</td></tr>
+      </tbody></table>
+    </div>
+    <div class="estimate-total">
+      <span class="label">Project Total</span>
+      <span class="amount">$8,290.81</span>
+    </div>
+  </div>
+</main>
+<div class="plant-tooltip" id="plant-tooltip">
+  <div class="tooltip-img-wrap" id="tooltip-img-wrap"></div>
+  <div class="tooltip-body">
+    <h4 id="tooltip-name"></h4>
+    <div class="botanical" id="tooltip-botanical"></div>
+    <div class="detail-grid" id="tooltip-details"></div>
+    <div class="tooltip-badges" id="tooltip-badges"></div>
+  </div>
+</div>
+<div class="clone-menu" id="clone-menu">
+  <button class="clone-text-btn" id="clone-confirm" type="button">Clone</button>
+</div>
+<div class="modal-backdrop" id="plant-modal-backdrop">
+  <div class="plant-modal" role="dialog" aria-modal="true" aria-labelledby="plant-modal-title">
+    <h3 id="plant-modal-title">Select Plant to Add</h3>
+    <div class="plant-list" id="plant-radio-list"></div>
+    <div class="modal-actions">
+      <button class="calib-btn" id="plant-modal-cancel" type="button">Cancel</button>
+      <button class="calib-btn" id="plant-modal-confirm" type="button" style="background:var(--green-dark);color:#fff;border-color:var(--green-dark)">Place on Map</button>
+    </div>
+  </div>
+</div>
+<script>
+const P={1:{n:"Smooth Hydrangea",b:"Hydrangea arborescens",cv:"",t:"Deciduous shrub",s:"3-5 ft H x 4-6 ft W",f:"Dark green; yellow in fall",bc:"White (greenish-white to snow white)",bh:"#FAFAFA",bt:"June - September",z:"3-9",l:"Full sun to part shade",no:"Blooms on new wood - very cold hardy. Native to eastern US. Low maintenance.",na:true,ev:false,po:true,dr:false,fr:false,w:"Hydrangea_arborescens",i:"Hydrangea arborescens",c:"#7eb87e"},2:{n:"Koto no Ito Japanese Maple",b:"Acer palmatum",cv:"Koto no Ito",t:"Deciduous small tree",s:"4-6 ft H x 3-5 ft W (slow; fine-textured habit)",f:"Narrow green linear lobes; gold-orange fall color",bc:"Small red-purple (not showy)",bh:"#8B1A4A",bt:"April (alongside emerging leaves)",z:"5-9",l:"Part shade to full sun",no:"Threadleaf Japanese maple; compact. Prefers dappled shade and even moisture.",na:false,ev:false,po:false,dr:false,fr:false,w:"Acer_palmatum",i:"Acer palmatum 'Koto no Ito'",c:"#c0392b"},3:{n:"White Lights Azalea",b:"Rhododendron 'White Lights'",cv:"White Lights",t:"Deciduous shrub",s:"4-5 ft H x 4-5 ft W",f:"Blue-green; orange-red fall color before drop",bc:"White",bh:"#FFFFFF",bt:"May - June",z:"4-7",l:"Part sun to part shade",no:"Northern Lights series; very cold-hardy deciduous azalea. Mounded habit; prefers acidic, well-drained soil (pH 4.5-6.0).",na:false,ev:false,po:true,dr:false,fr:true,w:"Rhododendron",i:"Rhododendron 'White Lights'",c:"#f0ead6"},4:{n:"Darlow's Enigma Rambler Rose",b:"Rosa 'Darlow's Enigma'",cv:"Darlow's Enigma",t:"Climbing / rambling rose",s:"10-11 ft H x 6-12 ft W",f:"Dark green, glossy",bc:"Pure white with golden centers",bh:"#FFFEF0",bt:"May - November (continuous)",z:"4-10",l:"Full sun to part shade",no:"Very fragrant. Up to 100 blooms per cluster. Shade tolerant. Extremely disease resistant.",na:false,ev:false,po:true,dr:false,fr:true,w:"Rosa",i:"Rosa",c:"#f5c6d0"},5:{n:"Joe Pye Weed",b:"Eutrochium purpureum",cv:"",t:"Herbaceous perennial",s:"5-9 ft H x 2-4 ft W",f:"Green, whorled leaves; vanilla-scented",bc:"Dusty rose / mauve-pink / soft purple",bh:"#C9788C",bt:"July - September",z:"3-10",l:"Full sun to part shade",no:"Top butterfly and pollinator magnet. Deer resistant. Native to eastern North America.",na:true,ev:false,po:true,dr:true,fr:false,w:"Eutrochium_purpureum",i:"Eutrochium purpureum",c:"#9b59b6"},6:{n:"Japanese Ghost Fern",b:"Athyrium 'Ghost'",cv:"Ghost",t:"Deciduous perennial fern",s:"24-36 in H x 18-24 in W",f:"Silvery-gray fronds with dark maroon midribs",bc:"None (fern)",bh:null,bt:"Foliage interest: spring-fall",z:"4-8",l:"Part shade to full shade",no:"Hybrid of Japanese Painted Fern x Lady Fern. Upright habit. Silvery color most intense in spring.",na:false,ev:false,po:false,dr:true,fr:false,w:"Athyrium_niponicum",i:"Athyrium",c:"#b8ccb8"},7:{n:"Astilbe",b:"Astilbe",cv:"'Snowdrift' / 'Deutschland'",t:"Herbaceous perennial",s:"12-60 in H x 18-30 in W",f:"Fern-like; dark green to bronze",bc:"Pink, white, red, purple, peach (fluffy plumes)",bh:"#F4A7B9",bt:"May - August",z:"3-9",l:"Part shade to full shade",no:"Excellent for shade. Deer resistant. Dried plumes persist attractively through winter.",na:false,ev:false,po:true,dr:true,fr:false,w:"Astilbe",i:"Astilbe",c:"#e84393"},8:{n:"Peony",b:"Paeonia lactiflora / P. suffruticosa",cv:"'Krinkled White' / 'Snow on Emerald Mountain'",t:"Herbaceous perennial / deciduous shrub",s:"24-36 in (herbaceous) / 3-5 ft (tree peony)",f:"Rich green, deeply lobed",bc:"White with golden-yellow stamens",bh:"#FFFFFF",bt:"April - June",z:"2-9",l:"Full sun to part shade",no:"Two varieties: herbaceous 'Krinkled White' and tree peony 'Snow on Emerald Mountain'. Fragrant.",na:false,ev:false,po:true,dr:true,fr:true,w:"Paeonia_lactiflora",i:"Paeonia lactiflora",c:"#fff0f5"},9:{n:"Solomon's Seal",b:"Polygonatum",cv:"",t:"Herbaceous perennial",s:"12-36 in H x 8-12 in W",f:"Green on gracefully arching stems; yellow in fall",bc:"Creamy white / greenish-white (dangling bells)",bh:"#F5F0DC",bt:"April - May",z:"3-9",l:"Part shade to full shade",no:"Spreads slowly by rhizomes. Excellent for dry shade near tree roots. Blue-black berries attract birds.",na:true,ev:false,po:true,dr:true,fr:false,w:"Polygonatum",i:"Polygonatum",c:"#6db86d"},10:{n:"Hosta",b:"Hosta",cv:"Blue Angel, Night Before Christmas, Guacamole, Shadowland Wheee!, Paul's Glory, Wide Brim, Halcyon",t:"Herbaceous perennial",s:"11-36 in H x 20-70 in W (varies)",f:"Blue-gray, green, gold, or variegated",bc:"Pale lavender to near-white",bh:"#D8CBF5",bt:"July - August",z:"3-9",l:"Part shade to full shade",no:"Grown primarily for bold foliage. 7 cultivars in the mix. Slugs can be an issue.",na:false,ev:false,po:false,dr:false,fr:false,w:"Hosta",i:"Hosta",c:"#27ae60"},11:{n:"Hakone Grass",b:"Hakonechloa macra",cv:"",t:"Ornamental grass",s:"12-20 in H x 18-24 in W",f:"Bright green or gold-variegated, cascading; orange-red in fall",bc:"Small tan/bronze flower spikes (subtle)",bh:"#C4A86B",bt:"July - August",z:"5-9",l:"Part shade to full shade",no:"Rabbit pressure noted - test one plant first. Slow to establish. Glows in shade.",na:false,ev:false,po:false,dr:false,fr:false,w:"Hakonechloa",i:"Hakonechloa macra",c:"#f1c40f"},12:{n:"Actaea",b:"Actaea racemosa",cv:"",t:"Herbaceous perennial",s:"4-6 ft H x 2-4 ft W",f:"Deep green, finely cut / ferny",bc:"Creamy white (tall feathery spires)",bh:"#F8F4E8",bt:"August - September",z:"3-8",l:"Part shade to full shade",no:"Dramatic vertical accent. Attracts bees, butterflies, moths. Native to eastern US.",na:true,ev:false,po:true,dr:true,fr:false,w:"Actaea_racemosa",i:"Actaea racemosa",c:"#ecf0f1"},13:{n:"White Bleeding Heart",b:"Lamprocapnos spectabilis 'Alba'",cv:"Alba",t:"Herbaceous perennial",s:"24-36 in H x 18-36 in W",f:"Pale/powdery green, fern-like; goes dormant by midsummer",bc:"Pure white, heart-shaped dangling flowers",bh:"#FFFFFF",bt:"May - June",z:"2-9",l:"Part shade to full shade",no:"Goes dormant in summer - pair with hostas or ferns to fill gap. Excellent cut flower.",na:false,ev:false,po:true,dr:false,fr:false,w:"Lamprocapnos_spectabilis",i:"Lamprocapnos spectabilis",c:"#1a5fb4"},14:{n:"Columbine",b:"Aquilegia",cv:"white or white/pink",t:"Herbaceous perennial",s:"18-36 in H x 12-18 in W",f:"Blue-green to grey-green, delicate and ferny",bc:"White, or white with pink; spurred flowers",bh:"#FFFFFF",bt:"May - June",z:"3-9",l:"Full sun to part shade",no:"Self-seeds freely. Attracts hummingbirds and bees. Short-lived but naturalizes well.",na:false,ev:false,po:true,dr:true,fr:false,w:"Aquilegia",i:"Aquilegia",c:"#e8d5e8"},15:{n:"Black Stocking & Cotton Candy Meadow Rue",b:"Thalictrum",cv:"Black Stocking & Cotton Candy",t:"Herbaceous perennial",s:"4-6 ft H x 18-23 in W",f:"Lacy green (columbine-like) on near-black stems (Black Stocking); soft pink clouds (Cotton Candy)",bc:"Deep purple-pink / lavender-magenta; soft pink",bh:"#9B59B6",bt:"July - August",z:"5-9",l:"Full sun to part shade",no:"Black Stocking: near-black stems. Cotton Candy: airy pink blooms. Deer and rabbit resistant. May need staking.",na:false,ev:false,po:true,dr:true,fr:false,w:"Thalictrum",i:"Thalictrum",c:"#8e44ad"},16:{n:"Tiarella",b:"Tiarella",cv:"",t:"Herbaceous perennial",s:"6-12 in H x 12-18 in W (spreading)",f:"Lobed leaves; many forms with dark veining or centers",bc:"White to soft pink (foamflower spikes)",bh:"#FFF5F5",bt:"April - June",z:"4-9",l:"Part shade to full shade",no:"Foamflower. Spreads gently by stolons; excellent woodland groundcover with hostas and ferns. Eastern species often Tiarella cordifolia.",na:true,ev:false,po:true,dr:true,fr:false,w:"Tiarella",i:"Tiarella cordifolia",c:"#e67e22"},17:{n:"Bloodroot",b:"Sanguinaria canadensis",cv:"(existing plant)",t:"Native wildflower",s:"6-12 in H x 6-8 in W",f:"Rounded, deeply lobed, blue-green; dormant by midsummer",bc:"White (8 petals) with bright yellow stamens",bh:"#FFFFFF",bt:"March - April",z:"3-8",l:"Part shade to full shade",no:"Existing plant. Spring ephemeral - blooms ~2 weeks. One of the earliest native wildflowers.",na:true,ev:false,po:true,dr:false,fr:false,w:"Sanguinaria_canadensis",i:"Sanguinaria canadensis",c:"#f9f9f9"},18:{n:"Native Wild Ginger",b:"Asarum canadense",cv:"",t:"Perennial groundcover",s:"4-6 in H x 6-12 in W (spreading)",f:"Heart-shaped, dark green, velvety",bc:"Tiny reddish-brown / maroon (hidden under leaves)",bh:"#6B2C1A",bt:"April - June",z:"3-9",l:"Part shade to full shade",no:"Excellent native groundcover for deep shade. Slow to establish but very long-lived. Deer resistant.",na:true,ev:false,po:true,dr:true,fr:false,w:"Asarum_canadense",i:"Asarum canadense",c:"#2d5a27"},19:{n:"Penstemon Beardtongue",b:"Penstemon digitalis",cv:"",t:"Herbaceous perennial",s:"2-5 ft H x 18-24 in W",f:"Dark green, shiny; purple-tinged stems",bc:"White to pale lavender-white, tubular flowers",bh:"#F8F4FF",bt:"June - July",z:"3-8",l:"Full sun to part shade",no:"Attracts hummingbirds, bumblebees, butterflies. Short-lived but self-seeds. Native.",na:true,ev:false,po:true,dr:false,fr:false,w:"Penstemon_digitalis",i:"Penstemon digitalis",c:"#dcdcdc"},20:{n:"Heart-leaved Aster",b:"Symphyotrichum cordifolium",cv:"",t:"Herbaceous perennial",s:"2-4 ft H x 1-2 ft W",f:"Dark green, heart-shaped basal leaves",bc:"Blue to blue-purple with yellow centers",bh:"#7B9DD6",bt:"August - October",z:"3-8",l:"Part shade to full shade",no:"Native woodland aster. Self-seeds readily. Excellent fall pollinator plant.",na:true,ev:false,po:true,dr:false,fr:false,w:"Symphyotrichum_cordifolium",i:"Symphyotrichum cordifolium",c:"#a8b8d8"},21:{n:"Japanese Anemone",b:"Anemone x hybrida 'Honorine Jobert'",cv:"Honorine Jobert",t:"Herbaceous perennial",s:"36-48 in H x 18-24 in W",f:"Dark green, palmate/lobed; basal mound 12-24 in",bc:"Pure white, semi-double, with golden-yellow stamens",bh:"#FFFFFF",bt:"August - October",z:"4-9",l:"Part shade to full shade",no:"Perennial Plant of the Year 2016. RHS Award of Garden Merit. Spreads via rhizomes. Deer and rabbit resistant.",na:false,ev:false,po:true,dr:true,fr:false,w:"Anemone_%C3%97_hybrida",i:"Anemone hupehensis",c:"#fce4ec"},22:{n:"Thuja Green Giant",b:"Thuja x 'Green Giant'",cv:"Green Giant",t:"Evergreen tree/screen",s:"6 ft+ (small at planting)",f:"Dense deep green, scale-like",bc:"Evergreen foliage",bh:null,bt:"Year-round foliage",z:"5-8",l:"Part shade to sun",no:"Dense evergreen privacy screen along property border. More shade-tolerant than Eastern arborvitae.",na:false,ev:true,po:false,dr:false,fr:false,w:"Thuja_plicata",i:"Thuja plicata",c:"#0f3928"}};
+Object.assign(P,{
+23:{n:"Limelight Hydrangea",b:"Hydrangea paniculata",cv:"Limelight",t:"Deciduous shrub",s:"6-8 ft H x 6-8 ft W",f:"Medium green; yellow in fall",bc:"Lime-green aging to cream/white then pink",bh:"#d6ead0",bt:"July - September",z:"3-8",l:"Full sun to part shade",no:"Large upright panicles with long bloom season and strong stems.",na:false,ev:false,po:true,dr:false,fr:false,w:"Hydrangea_paniculata",i:"Hydrangea paniculata 'Limelight'",c:"#9dc183"},
+24:{n:"Hemlock",b:"Tsuga canadensis",cv:"",t:"Evergreen conifer tree",s:"40-70 ft H x 25-35 ft W",f:"Fine-textured dark green needles",bc:"Cones, not showy flowers",bh:"#3e6f4f",bt:"Year-round foliage interest",z:"3-7",l:"Part shade to full shade",no:"Graceful evergreen screening tree with soft texture.",na:true,ev:true,po:false,dr:false,fr:false,w:"Tsuga_canadensis",i:"Tsuga canadensis",c:"#2f6b45"},
+25:{n:"Oak",b:"Quercus",cv:"",t:"Deciduous canopy tree",s:"50-80 ft H x 40-70 ft W",f:"Green foliage; strong fall color by species",bc:"Inconspicuous catkins",bh:"#7a9f55",bt:"Spring (catkins)",z:"4-8",l:"Full sun",no:"Long-lived structural shade tree and wildlife keystone species.",na:true,ev:false,po:true,dr:false,fr:false,w:"Quercus",i:"Quercus",c:"#6b8e23"},
+26:{n:"Tamukeyama Japanese Maple",b:"Acer palmatum var. dissectum",cv:"Tamukeyama",t:"Deciduous small tree",s:"6-10 ft H x 8-12 ft W",f:"Deep burgundy-red laceleaf; scarlet fall color",bc:"Small red-purple (not showy)",bh:"#7d1f3d",bt:"April",z:"5-8",l:"Part shade to full sun",no:"Weeping laceleaf form with strong burgundy season-long color.",na:false,ev:false,po:false,dr:false,fr:false,w:"Acer_palmatum",i:"Acer palmatum 'Tamukeyama'",c:"#8b1e3f"},
+27:{n:"Pink Dogwood",b:"Cornus florida",cv:"Pink flowering type",t:"Deciduous understory tree",s:"15-25 ft H x 15-25 ft W",f:"Medium green; red-purple fall color",bc:"Pink bracts with yellow-green centers",bh:"#f3b1c8",bt:"April - May",z:"5-9",l:"Part shade to full sun",no:"Classic spring-flowering specimen tree with strong seasonal interest.",na:true,ev:false,po:true,dr:false,fr:false,w:"Cornus_florida",i:"Cornus florida",c:"#d97ea1"},
+28:{n:"Mulberry",b:"Morus",cv:"",t:"Deciduous tree",s:"30-50 ft H x 30-50 ft W",f:"Bright green, broad leaves",bc:"Greenish catkins (not showy)",bh:"#7ca06a",bt:"Spring",z:"4-8",l:"Full sun",no:"Fast-growing shade tree with fruit for wildlife and birds.",na:false,ev:false,po:true,dr:false,fr:false,w:"Morus",i:"Morus",c:"#4f7f3f"},
+29:{n:"Eastern Red Cedar",b:"Juniperus virginiana",cv:"",t:"Evergreen conifer tree",s:"30-50 ft H x 8-20 ft W",f:"Scale-like blue-green to dark green evergreen foliage",bc:"Cones/berries, not showy flowers",bh:"#4d7a58",bt:"Year-round foliage interest",z:"2-9",l:"Full sun",no:"Durable native evergreen with strong screening value and excellent wildlife benefit.",na:true,ev:true,po:false,dr:true,fr:false,w:"Juniperus_virginiana",i:"Juniperus virginiana",c:"#3f6f4c"},
+30:{n:"Common Lilac",b:"Syringa vulgaris",cv:"",t:"Deciduous flowering shrub",s:"8-15 ft H x 6-12 ft W",f:"Medium green, heart-shaped leaves",bc:"Fragrant purple-lilac panicles (also white/pink cultivars)",bh:"#c8a2d9",bt:"May - June",z:"3-7",l:"Full sun",no:"Classic spring-blooming shrub valued for fragrance and cut flowers.",na:false,ev:false,po:true,dr:true,fr:true,w:"Syringa_vulgaris",i:"Syringa vulgaris",c:"#a070c3"},
+31:{n:"Japanese Painted Fern",b:"Athyrium niponicum var. pictum",cv:"",t:"Deciduous perennial fern",s:"12-18 in H x 18-24 in W",f:"Silvery fronds with burgundy-purple midribs and green edging",bc:"None (fern)",bh:null,bt:"Foliage interest: spring-fall",z:"3-8",l:"Part shade to full shade",no:"Elegant woodland fern with metallic foliage and excellent texture contrast in shade plantings.",na:false,ev:false,po:false,dr:true,fr:false,w:"Athyrium_niponicum",i:"Athyrium niponicum var. pictum",c:"#a9b7c6"},
+32:{n:"White Spanish Bells",b:"Hyacinthoides hispanica",cv:"Alba",t:"Bulbous perennial",s:"12-18 in H x 6-12 in W",f:"Green, strap-like foliage",bc:"White nodding bell flowers",bh:"#f7f7f2",bt:"April - May",z:"3-8",l:"Part shade to full sun",no:"Spring woodland bulb with graceful white bell-shaped blooms. Naturalizes in drifts over time.",na:false,ev:false,po:true,dr:true,fr:false,w:"Hyacinthoides_hispanica",i:"Hyacinthoides hispanica 'Alba'",c:"#d9e2d6"},
+33:{n:"Mayapple",b:"Podophyllum peltatum",cv:"",t:"Herbaceous perennial",s:"12-18 in H x 12-24 in W",f:"Umbrella-like medium green foliage",bc:"White nodding flower beneath leaves",bh:"#f7f4ea",bt:"April - May",z:"3-8",l:"Part shade to full shade",no:"Native woodland groundcover that spreads by rhizomes and creates a lush spring colony.",na:true,ev:false,po:true,dr:true,fr:false,w:"Podophyllum_peltatum",i:"Podophyllum peltatum",c:"#a7b989"},
+34:{n:"Lily of the Valley",b:"Convallaria majalis",cv:"",t:"Herbaceous perennial",s:"6-10 in H x 12-24 in W",f:"Bright to medium green strap-like leaves",bc:"White bell flowers",bh:"#f9f9f3",bt:"May - June",z:"3-8",l:"Part shade to full shade",no:"Fragrant spring groundcover that spreads to form dense colonies in cool shaded sites.",na:false,ev:false,po:true,dr:true,fr:true,w:"Convallaria_majalis",i:"Convallaria majalis",c:"#c7d7a8"},
+35:{n:"Pieris Japonica",b:"Pieris japonica",cv:"",t:"Evergreen shrub",s:"6-10 ft H x 6-8 ft W",f:"Leathery dark green; new growth bronze to red",bc:"White to creamy white (pendulous chains; pink buds)",bh:"#FFF8F5",bt:"March - April",z:"5-8",l:"Part shade to part sun",no:"Ericaceous companion to rhododendrons/azaleas. Acidic, moist, well-drained soil. Spring flowers and colorful new shoots.",na:false,ev:true,po:true,dr:false,fr:true,w:"Pieris_japonica",i:"Pieris japonica",c:"#e8b4b4"}
+});
+const MAX_PLANT_ID=Math.max(...Object.keys(P).map(Number));
+// Removed from active plan — omit from legend, Plant Guide, and + Add Plant list (#1 hydrangea, #6 ghost fern, plus prior removals). P[id] kept for map markers / tooltips.
+const EXCLUDED_FROM_PLAN=new Set([1,6,8,11,14,18,20,21]);
+function activePlanPlantEntries(){return Object.entries(P).filter(([id])=>!EXCLUDED_FROM_PLAN.has(+id)).sort((a,b)=>+a[0]-+b[0])}
+// Legend / guide / map labels: 1…n in plan order (no gaps). Internal P keys and JSON export still use database ids.
+function planDisplayNum(pid){const rows=activePlanPlantEntries();for(let i=0;i<rows.length;i++){if(+rows[i][0]===+pid)return i+1}return null}
+Object.assign(P[4],{
+  n:"Generous Gardener Climbing Rose",
+  b:"Rosa",
+  cv:"The Generous Gardener",
+  t:"Climbing rose",
+  s:"10-15 ft H x 6-8 ft W",
+  f:"Medium green, glossy",
+  bc:"Soft blush pink to near-white",
+  bh:"#f8e6ea",
+  bt:"May - October",
+  z:"5-9",
+  l:"Full sun to part shade",
+  no:"Fragrant repeat-blooming English climbing rose with graceful arching canes.",
+  w:"Rosa",
+  i:"Rosa 'The Generous Gardener'",
+  c:"#e7a9b7"
+});
+P[5].n="Eupatorium";
+const PP=[
+// Visually identified + contour-snapped from GAO REAR BORDER.png (2382x1470)
+// Below/around shed
+{id:15,x:124,y:1178,r:25},{id:16,x:227,y:1164,r:25},
+// Above shed, left border curve
+{id:4,x:253,y:1055,r:25},{id:16,x:290,y:1002,r:25},{id:16,x:310,y:935,r:25},
+// Left border along garage
+{id:9,x:235,y:803,r:37},{id:6,x:296,y:762,r:25},
+{id:13,x:325,y:745,r:27},{id:6,x:362,y:688,r:38},{id:9,x:335,y:653,r:27},
+// Upper-left area
+{id:1,x:180,y:495,r:40},{id:10,x:377,y:515,r:40},{id:5,x:250,y:270,r:60},
+// Top border left
+{id:22,x:370,y:178,r:45},{id:5,x:557,y:244,r:60},
+// W.ARB crosshatch cluster
+{id:22,x:700,y:278,r:27},{id:22,x:738,y:312,r:27},{id:22,x:770,y:278,r:27},{id:22,x:748,y:248,r:27},
+// Upper band
+{id:12,x:540,y:468,r:30},{id:7,x:466,y:566,r:30},
+{id:3,x:566,y:526,r:46},{id:6,x:464,y:633,r:25},{id:9,x:641,y:446,r:36},
+{id:13,x:757,y:432,r:30},{id:6,x:604,y:618,r:27},
+// Japanese maple area
+{id:2,x:878,y:433,r:40},{id:12,x:857,y:513,r:37},{id:10,x:694,y:352,r:35},
+// Top border center-right
+{id:5,x:920,y:228,r:50},{id:10,x:1095,y:426,r:35},{id:22,x:1272,y:241,r:60},
+// Middle band
+{id:6,x:511,y:412,r:25},{id:19,x:659,y:619,r:27},
+{id:17,x:836,y:589,r:28},{id:13,x:963,y:563,r:36},{id:12,x:1088,y:466,r:30},{id:3,x:1226,y:447,r:35},
+// Right side — hydrangea mass (3x #1 for the L. HYDRANGEA area)
+{id:1,x:1490,y:442,r:50},{id:1,x:1601,y:476,r:45},
+// W.ARB along top-right
+{id:22,x:1572,y:208,r:50},{id:22,x:1779,y:208,r:50},{id:22,x:2150,y:312,r:50},
+// Bottom row of bed
+{id:7,x:930,y:619,r:36},{id:19,x:1133,y:648,r:40}
+// Requested additions (staging cluster on right side)
+,{id:23,x:1685,y:660,r:46},{id:23,x:1772,y:642,r:46},{id:23,x:1858,y:668,r:46},{id:23,x:1728,y:734,r:46},
+{id:23,x:1812,y:748,r:46},{id:23,x:1896,y:726,r:46},{id:23,x:1764,y:808,r:46},{id:23,x:1850,y:824,r:46},
+{id:24,x:2016,y:646,r:50},{id:24,x:2104,y:702,r:50},{id:24,x:2050,y:786,r:50},
+{id:25,x:2208,y:684,r:56},
+{id:26,x:1960,y:878,r:48},
+{id:27,x:2080,y:900,r:48},
+{id:28,x:2206,y:904,r:52},
+{id:29,x:2148,y:786,r:50},{id:29,x:2238,y:792,r:50},
+{id:30,x:2138,y:968,r:44},
+{id:31,x:1808,y:886,r:28},{id:31,x:1864,y:892,r:28},{id:31,x:1918,y:900,r:28},
+{id:31,x:1796,y:946,r:28},{id:31,x:1854,y:954,r:28},{id:31,x:1912,y:962,r:28},
+{id:32,x:1998,y:1008,r:30},
+{id:33,x:1912,y:1024,r:28},
+{id:34,x:2042,y:1034,r:28},
+{id:34,x:2008,y:1056,r:26},
+{id:34,x:2048,y:1076,r:26},
+{id:34,x:2092,y:1052,r:26},
+{id:34,x:2080,y:1094,r:26},
+{id:34,x:2028,y:1102,r:26},
+// Pieris japonica — acidic-shrub band near azaleas
+{id:35,x:508,y:532,r:40},{id:35,x:1195,y:458,r:40}
+];
+const AREA_KEY='gao-area-overlays-v1';
+const LAWN_LABEL_KEY='gao-lawn-label-v1';
+const LAWN_BORDER_KEY='gao-lawn-border-points-v1';
+const MOCK_LINE_KEY='gao-mock-lines-v1';
+const NOTE_KEY='gao-notes-v1';
+const LAWN_BORDER_DEFAULT=[{x:250,y:1130},{x:430,y:1000},{x:620,y:900},{x:840,y:835},{x:1040,y:775},{x:1260,y:760},{x:1490,y:790},{x:1710,y:820},{x:1940,y:900},{x:2130,y:1010},{x:2210,y:1060},{x:2280,y:1120},{x:2330,y:1175}];
+const MOCK_LINE_DEFAULT={bottom:{x1:170,y1:1315,x2:2290,y2:1275,cls:''},back:{x1:280,y1:245,x2:2270,y2:340,cls:'back'},right:{x1:2295,y1:210,x2:2295,y2:1310,cls:''}};
+const AREA_DEFAULT={
+  lawn:{label:'Lawn',kind:'lawn',x:1120,y:720,w:980,h:620},
+  patio1:{label:'Patio',kind:'patio',x:186,y:1138,w:330,h:198},
+  patio2:{label:'Patio',kind:'patio',x:1768,y:1096,w:352,h:214},
+  garage:{label:'Garage',kind:'garage',x:40,y:892,w:302,h:292},
+  shed:{label:'Shed',kind:'shed',x:96,y:1044,w:204,h:148},
+  neighborShed:{label:"Neighbor's Shed",kind:'shed',x:2146,y:1018,w:214,h:148},
+  woodlog:{label:'Wood Log',kind:'woodlog',x:364,y:1118,w:242,h:98}
+};
+const IC={};
+// Plant id → file under images/ (matches filenames on disk; not manifest.json)
+const LOCAL_IMAGES_BY_ID={
+2:'images/koto_no_ito_japanese_maple.jpg',
+3:'images/white_lights_azalea.webp',
+4:'images/generous_gardener_rose.webp',
+5:'images/eupatorium.jpg',
+7:'images/deutschland_astilbe.jpg',
+9:'images/solomans_seal.jpg',
+10:'images/hosta.jpg',
+12:'images/actaea.jpg',
+13:'images/white_bleeding_heart.jpg',
+15:'images/cotton_candy_meadow_rue.jpg',
+16:'images/tiarella_cordifolia.webp',
+17:'images/bloodroot.jpeg',
+19:'images/penstemon_beardtongue.jpg',
+22:'images/thuja_green_giant.webp',
+24:'images/hemlock.jpg',
+25:'images/oak.jpg',
+26:'images/tamukeyama.webp',
+27:'images/pink_dogwood.webp',
+32:'images/white_spanish_bells.webp',
+35:'images/pieris_japonica.webp'
+};
+let LOCAL_IMG_BY_PLANT_ID={};
+function initLocalPlantImages(){LOCAL_IMG_BY_PLANT_ID=Object.assign({},LOCAL_IMAGES_BY_ID)}
+async function resolvePlantImg(plantId,p){if(plantId!=null&&LOCAL_IMG_BY_PLANT_ID[+plantId])return LOCAL_IMG_BY_PLANT_ID[+plantId];return fPI(p)}
+// Global marker calibration so you can nudge/scale once
+// instead of editing every x/y/r entry.
+const MCFG={x:0,y:0,s:1,rs:.55};
+const MKEY='gao-marker-overrides-v1';
+const AKEY='gao-marker-additions-v1';
+const DKEY='gao-marker-deletions-v1';
+let MOV={},MADD=[],MDEL={},AREAS={},NOTES={},LAWN_LABEL={x:1490,y:1000},LAWN_BORDER_POINTS=LAWN_BORDER_DEFAULT.map(p=>({...p})),MOCK_LINES={},DRAG=null,SELECTED=null,SELECTED_AREA=null,SELECTED_NOTE=null,SELECTED_LAWN_POINT=null,SELECTED_MOCK_LINE=null,LAWN_EDITING=false,ADDMODE=false,NOTEMODE=false,ENT={},PENDING_PLANT_ID=null,PENDING_CLONE_KEY=null;
+const UNDO_LIMIT=80;
+let UNDO_STACK=[],IS_UNDOING=false;
+function stClone(v){return JSON.parse(JSON.stringify(v))}
+function captureState(){return{MOV:stClone(MOV),MADD:stClone(MADD),MDEL:stClone(MDEL),AREAS:stClone(AREAS),NOTES:stClone(NOTES),LAWN_LABEL:stClone(LAWN_LABEL),LAWN_BORDER_POINTS:stClone(LAWN_BORDER_POINTS),MOCK_LINES:stClone(MOCK_LINES)}}
+function updateUndoUI(){const b=document.getElementById('undo-btn');if(b)b.disabled=!UNDO_STACK.length}
+function pushUndo(){if(IS_UNDOING)return;UNDO_STACK.push(captureState());if(UNDO_STACK.length>UNDO_LIMIT)UNDO_STACK.shift();updateUndoUI()}
+function applyState(s){MOV=stClone(s.MOV||{});MADD=stClone(s.MADD||[]);MDEL=stClone(s.MDEL||{});AREAS=stClone(s.AREAS||{});NOTES=stClone(s.NOTES||{});LAWN_LABEL=stClone(s.LAWN_LABEL||{x:1490,y:1000});LAWN_BORDER_POINTS=stClone(s.LAWN_BORDER_POINTS&&s.LAWN_BORDER_POINTS.length?s.LAWN_BORDER_POINTS:LAWN_BORDER_DEFAULT);MOCK_LINES=stClone(s.MOCK_LINES||{});svMOV();svADD();svDEL();svAREA();svNOTE();svLL();svLB();svML();SELECTED=null;SELECTED_AREA=null;SELECTED_NOTE=null;SELECTED_LAWN_POINT=null;SELECTED_MOCK_LINE=null;DRAG=null;renderLawnBorder();renderMockLines();renderAreas();renderNotes();renderMarkers();renderLegend();renderGuide();updateUndoUI()}
+function undoLast(){if(!UNDO_STACK.length)return;IS_UNDOING=true;const s=UNDO_STACK.pop();applyState(s);IS_UNDOING=false}
+async function fIN(q){try{const r=await fetch(`https://api.inaturalist.org/v1/taxa/autocomplete?q=${encodeURIComponent(q)}&per_page=1`);if(!r.ok)return null;const d=await r.json();return d.results?.[0]?.default_photo?.medium_url||null}catch{return null}}
+async function fWI(t){try{const r=await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t)}`);if(!r.ok)return null;const d=await r.json();return d.thumbnail?.source||null}catch{return null}}
+async function fPI(p){const k=p.i||p.w;if(IC[k]!==undefined)return IC[k];let u=null;if(p.i)u=await fIN(p.i);if(!u&&p.w)u=await fWI(p.w);IC[k]=u;return u}
+function pf(){Object.entries(P).forEach(([id,p])=>{resolvePlantImg(+id,p)})}
+function dc(h,a){h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');return`rgb(${Math.max(0,parseInt(h.substr(0,2),16)-a)},${Math.max(0,parseInt(h.substr(2,2),16)-a)},${Math.max(0,parseInt(h.substr(4,2),16)-a)})`}
+function cc(h){h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');return(.299*parseInt(h.substr(0,2),16)+.587*parseInt(h.substr(2,2),16)+.114*parseInt(h.substr(4,2),16))/255>.6?'#2c2c2c':'#fff'}
+function badges(p){let h='';if(p.na)h+='<span class="badge badge-native">Native</span>';if(p.ev)h+='<span class="badge badge-evergreen">Evergreen</span>';if(p.po)h+='<span class="badge badge-pollinator">Pollinator</span>';if(p.dr)h+='<span class="badge badge-deer">Deer Resistant</span>';if(p.fr)h+='<span class="badge badge-fragrant">Fragrant</span>';return h}
+function ldMOV(){try{const v=localStorage.getItem(MKEY);MOV=v?JSON.parse(v):{}}catch{MOV={}}}
+function ldADD(){try{const v=localStorage.getItem(AKEY);MADD=v?JSON.parse(v):[]}catch{MADD=[]}}
+function ldDEL(){try{const v=localStorage.getItem(DKEY);MDEL=v?JSON.parse(v):{}}catch{MDEL={}}}
+function ldAREA(){try{const v=localStorage.getItem(AREA_KEY);AREAS=v?JSON.parse(v):{}}catch{AREAS={}}}
+function ldNOTE(){try{const v=localStorage.getItem(NOTE_KEY);NOTES=v?JSON.parse(v):{}}catch{NOTES={}}}
+function ldLL(){try{const v=localStorage.getItem(LAWN_LABEL_KEY);const p=v?JSON.parse(v):null;if(p&&Number.isFinite(p.x)&&Number.isFinite(p.y))LAWN_LABEL={x:p.x,y:p.y}}catch{}}
+function ldLB(){try{const v=localStorage.getItem(LAWN_BORDER_KEY);const arr=v?JSON.parse(v):null;if(Array.isArray(arr)&&arr.length>=3)LAWN_BORDER_POINTS=arr.filter(p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y)).map(p=>({x:p.x,y:p.y}))}catch{}}
+function ldML(){try{const v=localStorage.getItem(MOCK_LINE_KEY);MOCK_LINES=v?JSON.parse(v):{}}catch{MOCK_LINES={}}}
+function svMOV(){try{localStorage.setItem(MKEY,JSON.stringify(MOV))}catch{}}
+function svADD(){try{localStorage.setItem(AKEY,JSON.stringify(MADD))}catch{}}
+function svDEL(){try{localStorage.setItem(DKEY,JSON.stringify(MDEL))}catch{}}
+function svAREA(){try{localStorage.setItem(AREA_KEY,JSON.stringify(AREAS))}catch{}}
+function svNOTE(){try{localStorage.setItem(NOTE_KEY,JSON.stringify(NOTES))}catch{}}
+function svLL(){try{localStorage.setItem(LAWN_LABEL_KEY,JSON.stringify(LAWN_LABEL))}catch{}}
+function svLB(){try{localStorage.setItem(LAWN_BORDER_KEY,JSON.stringify(LAWN_BORDER_POINTS.map(p=>({x:Math.round(p.x),y:Math.round(p.y)}))))}catch{}}
+function svML(){try{localStorage.setItem(MOCK_LINE_KEY,JSON.stringify(MOCK_LINES))}catch{}}
+function svgPt(e,svg){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())}
+function setMXY(m,x,y,r){const ring=m.querySelector('.marker-ring');const cir=m.querySelector('circle:nth-child(2)');const txt=m.querySelector('text');const dh=m.querySelector('.delete-handle');ring.setAttribute('cx',x);ring.setAttribute('cy',y);ring.setAttribute('r',r+4);cir.setAttribute('cx',x);cir.setAttribute('cy',y);cir.setAttribute('r',r);txt.setAttribute('x',x);txt.setAttribute('y',y+1);if(dh){const qx=x+r*.78,qy=y-r*.78;dh.setAttribute('transform',`translate(${qx} ${qy})`)}}
+function rawToView(v){return v*MCFG.s+MCFG.x}
+function rawToViewY(v){return v*MCFG.s+MCFG.y}
+function viewToRawX(v){return(v-MCFG.x)/MCFG.s}
+function viewToRawY(v){return(v-MCFG.y)/MCFG.s}
+function keyFor(entry){return`${entry.a?'a':'b'}:${entry.i}`}
+function setSelected(k){SELECTED=k;document.querySelectorAll('.plant-marker').forEach(m=>m.classList.toggle('selected',m.dataset.key===k))}
+function areaEntries(){const out={};for(const [key,base] of Object.entries(AREA_DEFAULT)){const o=AREAS[key]||{};if(o.deleted)continue;out[key]={...base,label:o.label??base.label,kind:o.kind??base.kind,x:o.x??base.x,y:o.y??base.y,w:Math.max(60,o.w??base.w),h:Math.max(40,o.h??base.h)}}for(const [key,o] of Object.entries(AREAS)){if(AREA_DEFAULT[key]||!o||o.deleted||!o.label||!o.kind)continue;out[key]={label:o.label,kind:o.kind,x:Number.isFinite(o.x)?o.x:200,y:Number.isFinite(o.y)?o.y:200,w:Math.max(60,Number.isFinite(o.w)?o.w:220),h:Math.max(40,Number.isFinite(o.h)?o.h:140)}}return out}
+function setSelectedArea(k){SELECTED_AREA=k;document.querySelectorAll('.area-box').forEach(a=>a.classList.toggle('selected',a.dataset.areaKey===k))}
+function noteEntries(){const out=[];for(const [k,n] of Object.entries(NOTES)){if(!n||n.deleted)continue;out.push({k,x:Number(n.x)||0,y:Number(n.y)||0,w:Math.max(170,Number(n.w)||240),h:Math.max(56,Number(n.h)||64),t:String(n.t||'Note')})}return out}
+function setSelectedNote(k){SELECTED_NOTE=k;document.querySelectorAll('.note-item').forEach(n=>n.classList.toggle('selected',n.dataset.noteKey===k))}
+function wrapLines(txt,maxLen=30,maxLines=5){const words=String(txt||'').split(/\s+/).filter(Boolean);const lines=[];let cur='';for(const w of words){const cand=cur?`${cur} ${w}`:w;if(cand.length<=maxLen){cur=cand}else{if(cur)lines.push(cur);cur=w;if(lines.length>=maxLines-1)break}}if(cur&&lines.length<maxLines)lines.push(cur);if(!lines.length)lines.push('Note');return lines}
+function setNoteXY(g,n){const x=rawToView(n.x),y=rawToViewY(n.y),w=n.w*MCFG.s,h=n.h*MCFG.s;const r=g.querySelector('.note-box');const fo=g.querySelector('.note-fo');const drag=g.querySelector('.note-drag-handle');const hnd=g.querySelector('.note-resize-handle');r.setAttribute('x',x);r.setAttribute('y',y);r.setAttribute('width',w);r.setAttribute('height',h);fo.setAttribute('x',x);fo.setAttribute('y',y);fo.setAttribute('width',w);fo.setAttribute('height',h);if(drag){drag.setAttribute('x',x);drag.setAttribute('y',y);drag.setAttribute('width',w);drag.setAttribute('height',Math.min(18,h))}if(hnd){hnd.setAttribute('cx',x+w);hnd.setAttribute('cy',y+h)}}
+function autoGrowNote(k,editor,item){const n=NOTES[k];if(!n||!editor||!item)return false;const minViewH=Math.max(56*MCFG.s,editor.clientHeight||0);const neededViewH=Math.max(minViewH,Math.ceil(editor.scrollHeight+2));const neededRawH=Math.max(56,Math.ceil(neededViewH/MCFG.s));if(neededRawH<=n.h)return false;NOTES[k]={...n,h:neededRawH};setNoteXY(item,{...NOTES[k],k});svNOTE();return true}
+function createNoteAt(rawX,rawY,text){const k=`n-${Date.now().toString(36)}-${Math.floor(Math.random()*1e4).toString(36)}`;NOTES[k]={x:Math.round(rawX),y:Math.round(rawY),w:240,h:64,t:String(text||'Type note...')};svNOTE();setSelectedNote(k);renderNotes();return k}
+function deleteNoteByKey(k){if(!NOTES[k])return;pushUndo();delete NOTES[k];svNOTE();if(SELECTED_NOTE===k)SELECTED_NOTE=null;renderNotes()}
+function startNoteDrag(e,k,target,mode='move'){if(e.button!==undefined&&e.button!==0)return;e.preventDefault();e.stopPropagation();setSelectedNote(k);setSelected(null);const svg=document.getElementById('garden-svg');const pt=svgPt(e,svg);const n=NOTES[k];DRAG={kind:'note',k,mode,startPx:pt.x,startPy:pt.y,startX:n.x,startY:n.y,startW:n.w,startH:n.h,targetItem:target};if(mode==='resize'&&target?.classList?.contains('note-item'))target.classList.add('adjusting');try{target?.setPointerCapture&&target.setPointerCapture(e.pointerId)}catch{}}
+function renderNotes(){const g=document.getElementById('note-layer');if(!g)return;g.innerHTML='';noteEntries().forEach(n=>{const item=document.createElementNS('http://www.w3.org/2000/svg','g');item.classList.add('note-item');item.dataset.noteKey=n.k;const r=document.createElementNS('http://www.w3.org/2000/svg','rect');r.classList.add('note-box');r.setAttribute('rx','10');r.setAttribute('ry','10');const drag=document.createElementNS('http://www.w3.org/2000/svg','rect');drag.classList.add('note-drag-handle');const fo=document.createElementNS('http://www.w3.org/2000/svg','foreignObject');fo.classList.add('note-fo');const editor=document.createElement('div');editor.className='note-editor';editor.setAttribute('contenteditable','true');editor.textContent=n.t||'';fo.appendChild(editor);const h=document.createElementNS('http://www.w3.org/2000/svg','circle');h.classList.add('note-resize-handle');h.setAttribute('r','7');item.appendChild(r);item.appendChild(fo);item.appendChild(drag);item.appendChild(h);setNoteXY(item,n);g.appendChild(item);autoGrowNote(n.k,editor,item);r.addEventListener('pointerdown',e=>startNoteDrag(e,n.k,item,'move'));drag.addEventListener('pointerdown',e=>startNoteDrag(e,n.k,item,'move'));h.addEventListener('pointerdown',e=>startNoteDrag(e,n.k,item,'resize'));item.addEventListener('click',e=>{e.stopPropagation();setSelectedNote(n.k)});editor.addEventListener('pointerdown',e=>{e.stopPropagation();setSelectedNote(n.k)});editor.addEventListener('focus',()=>{setSelectedNote(n.k)});editor.addEventListener('input',()=>{if(!NOTES[n.k])return;NOTES[n.k].t=editor.textContent||'';const grew=autoGrowNote(n.k,editor,item);if(!grew)svNOTE()});});setSelectedNote(SELECTED_NOTE)}
+function persistArea(key,data){const base=AREA_DEFAULT[key]||{};const prev=AREAS[key]||{};AREAS[key]={...prev,label:prev.label??base.label??'Area',kind:prev.kind??base.kind??'patio',x:Math.round(data.x),y:Math.round(data.y),w:Math.max(60,Math.round(data.w)),h:Math.max(40,Math.round(data.h)),deleted:false};svAREA()}
+function deleteAreaByKey(key){pushUndo();AREAS[key]={...(AREAS[key]||{}),deleted:true};if(SELECTED_AREA===key)SELECTED_AREA=null;svAREA();renderAreas()}
+function setAreaXY(g,data){const x=rawToView(data.x),y=rawToViewY(data.y),w=data.w*MCFG.s,h=data.h*MCFG.s;const r=g.querySelector('.area-main');const t=g.querySelector('.area-label');const hnd=g.querySelector('.resize-handle');r.setAttribute('x',x);r.setAttribute('y',y);r.setAttribute('width',w);r.setAttribute('height',h);t.setAttribute('x',x+w/2);t.setAttribute('y',y+h/2);hnd.setAttribute('cx',x+w);hnd.setAttribute('cy',y+h)}
+function startAreaDrag(e,key,mode,target){if(e.button!==undefined&&e.button!==0)return;e.preventDefault();e.stopPropagation();hideTT();hideClonePrompt();setSelectedArea(key);setSelected(null);const svg=document.getElementById('garden-svg');const pt=svgPt(e,svg);const area=areaEntries()[key];DRAG={kind:'area',key,mode,target,startPx:pt.x,startPy:pt.y,startX:area.x,startY:area.y,startW:area.w,startH:area.h};try{target?.setPointerCapture&&target.setPointerCapture(e.pointerId)}catch{}}
+function startLawnLabelDrag(e){if(e.button!==undefined&&e.button!==0)return;e.preventDefault();e.stopPropagation();LAWN_EDITING=true;const svg=document.getElementById('garden-svg');const pt=svgPt(e,svg);DRAG={kind:'lawnLabel',startPx:pt.x,startPy:pt.y,startX:LAWN_LABEL.x,startY:LAWN_LABEL.y};renderLawnBorder()}
+function startLawnPointDrag(e,idx){if(e.button!==undefined&&e.button!==0)return;e.preventDefault();e.stopPropagation();LAWN_EDITING=true;SELECTED_LAWN_POINT=idx;const svg=document.getElementById('garden-svg');const pt=svgPt(e,svg);const p=LAWN_BORDER_POINTS[idx];DRAG={kind:'lawnPoint',idx,startPx:pt.x,startPy:pt.y,startX:p.x,startY:p.y};renderLawnBorder()}
+function removeLawnPoint(idx){if(!Number.isInteger(idx)||idx<0||idx>=LAWN_BORDER_POINTS.length)return;if(LAWN_BORDER_POINTS.length<=3)return;pushUndo();LAWN_BORDER_POINTS.splice(idx,1);if(SELECTED_LAWN_POINT===idx)SELECTED_LAWN_POINT=null;else if(SELECTED_LAWN_POINT!==null&&SELECTED_LAWN_POINT>idx)SELECTED_LAWN_POINT-=1;svLB();renderLawnBorder()}
+function nearestLawnSegment(pt){let best={idx:0,d:Infinity};for(let i=0;i<LAWN_BORDER_POINTS.length-1;i++){const a=LAWN_BORDER_POINTS[i],b=LAWN_BORDER_POINTS[i+1];const vx=b.x-a.x,vy=b.y-a.y;const len2=vx*vx+vy*vy||1;const t=Math.max(0,Math.min(1,((pt.x-a.x)*vx+(pt.y-a.y)*vy)/len2));const px=a.x+vx*t,py=a.y+vy*t;const d=(pt.x-px)*(pt.x-px)+(pt.y-py)*(pt.y-py);if(d<best.d)best={idx:i,d}}return best.idx}
+function addLawnPointAtClient(clientX,clientY){const svg=document.getElementById('garden-svg');const pt=svgPt({clientX,clientY},svg);const raw={x:viewToRawX(pt.x),y:viewToRawY(pt.y)};const segIdx=nearestLawnSegment(raw);pushUndo();LAWN_BORDER_POINTS.splice(segIdx+1,0,raw);SELECTED_LAWN_POINT=segIdx+1;svLB();renderLawnBorder();return SELECTED_LAWN_POINT}
+function smoothPathD(points){if(!points.length)return'';const vpts=points.map(p=>({x:rawToView(p.x),y:rawToViewY(p.y)}));if(vpts.length===1)return`M ${vpts[0].x} ${vpts[0].y}`;if(vpts.length===2)return`M ${vpts[0].x} ${vpts[0].y} L ${vpts[1].x} ${vpts[1].y}`;let d=`M ${vpts[0].x} ${vpts[0].y}`;for(let i=0;i<vpts.length-1;i++){const p0=vpts[i-1]||vpts[i],p1=vpts[i],p2=vpts[i+1],p3=vpts[i+2]||p2;const c1x=p1.x+(p2.x-p0.x)/6,c1y=p1.y+(p2.y-p0.y)/6,c2x=p2.x-(p3.x-p1.x)/6,c2y=p2.y-(p3.y-p1.y)/6;d+=` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2.x} ${p2.y}`}return d}
+function renderLawnBorder(){const layer=document.getElementById('lawn-border-layer');const l=document.getElementById('lawn-border-label');const path=document.getElementById('lawn-border-path');const pg=document.getElementById('lawn-border-points');if(!l||!path||!pg||!layer)return;layer.classList.toggle('editing',LAWN_EDITING);l.setAttribute('x',String(rawToView(LAWN_LABEL.x)));l.setAttribute('y',String(rawToViewY(LAWN_LABEL.y)));path.setAttribute('d',smoothPathD(LAWN_BORDER_POINTS));pg.innerHTML='';LAWN_BORDER_POINTS.forEach((p,idx)=>{const c=document.createElementNS('http://www.w3.org/2000/svg','circle');c.classList.add('lawn-point');if(idx===SELECTED_LAWN_POINT)c.classList.add('active');c.setAttribute('r','7');c.setAttribute('cx',String(rawToView(p.x)));c.setAttribute('cy',String(rawToViewY(p.y)));c.addEventListener('pointerdown',e=>startLawnPointDrag(e,idx));c.addEventListener('dblclick',e=>{e.preventDefault();e.stopPropagation();removeLawnPoint(idx)});pg.appendChild(c)})}
+function lineEntries(){const out={};for(const [k,b] of Object.entries(MOCK_LINE_DEFAULT)){const o=MOCK_LINES[k]||{};out[k]={x1:Number.isFinite(o.x1)?o.x1:b.x1,y1:Number.isFinite(o.y1)?o.y1:b.y1,x2:Number.isFinite(o.x2)?o.x2:b.x2,y2:Number.isFinite(o.y2)?o.y2:b.y2,cls:b.cls}}return out}
+function setMockLineXY(g,d){const ln=g.querySelector('.mock-line');const a=g.querySelector('.end-a');const b=g.querySelector('.end-b');const x1=rawToView(d.x1),y1=rawToViewY(d.y1),x2=rawToView(d.x2),y2=rawToViewY(d.y2);ln.setAttribute('x1',x1);ln.setAttribute('y1',y1);ln.setAttribute('x2',x2);ln.setAttribute('y2',y2);a.setAttribute('cx',x1);a.setAttribute('cy',y1);b.setAttribute('cx',x2);b.setAttribute('cy',y2)}
+function persistMockLine(key,d){MOCK_LINES[key]={x1:Math.round(d.x1),y1:Math.round(d.y1),x2:Math.round(d.x2),y2:Math.round(d.y2)};svML()}
+function startMockLineEndDrag(e,key,end,target){if(e.button!==undefined&&e.button!==0)return;e.preventDefault();e.stopPropagation();SELECTED_MOCK_LINE=key;const svg=document.getElementById('garden-svg');const pt=svgPt(e,svg);const ln=lineEntries()[key];DRAG={kind:'mockLineEnd',key,end,startPx:pt.x,startPy:pt.y,startLine:{...ln}};try{target?.setPointerCapture&&target.setPointerCapture(e.pointerId)}catch{}renderMockLines()}
+function renderMockLines(){const layer=document.getElementById('mock-lines-layer');if(!layer)return;layer.innerHTML='';const lines=lineEntries();Object.entries(lines).forEach(([key,d])=>{const g=document.createElementNS('http://www.w3.org/2000/svg','g');g.classList.add('mock-line-group');if(SELECTED_MOCK_LINE===key)g.classList.add('active');g.dataset.lineKey=key;const ln=document.createElementNS('http://www.w3.org/2000/svg','line');ln.classList.add('mock-line');if(d.cls)ln.classList.add(d.cls);const a=document.createElementNS('http://www.w3.org/2000/svg','circle');a.classList.add('mock-line-end','end-a');if(d.cls)a.classList.add(d.cls);a.setAttribute('r','7');const b=document.createElementNS('http://www.w3.org/2000/svg','circle');b.classList.add('mock-line-end','end-b');if(d.cls)b.classList.add(d.cls);b.setAttribute('r','7');g.appendChild(ln);g.appendChild(a);g.appendChild(b);setMockLineXY(g,d);ln.addEventListener('pointerdown',e=>{if(e.button!==0)return;e.preventDefault();e.stopPropagation();SELECTED_MOCK_LINE=key;renderMockLines()});a.addEventListener('pointerdown',e=>startMockLineEndDrag(e,key,'a',a));b.addEventListener('pointerdown',e=>startMockLineEndDrag(e,key,'b',b));layer.appendChild(g)})}
+function renderAreas(){const g=document.getElementById('site-areas');if(!g)return;g.innerHTML='';const areas=areaEntries();Object.entries(areas).forEach(([key,a])=>{const box=document.createElementNS('http://www.w3.org/2000/svg','g');box.classList.add('area-box',`area-${a.kind}`);box.dataset.areaKey=key;const r=document.createElementNS('http://www.w3.org/2000/svg','rect');r.classList.add('area-main');const t=document.createElementNS('http://www.w3.org/2000/svg','text');t.classList.add('area-label');t.textContent=a.label;const h=document.createElementNS('http://www.w3.org/2000/svg','circle');h.classList.add('resize-handle');h.setAttribute('r','8');box.appendChild(r);box.appendChild(t);box.appendChild(h);setAreaXY(box,a);g.appendChild(box);r.addEventListener('pointerdown',e=>startAreaDrag(e,key,'move',r));h.addEventListener('pointerdown',e=>startAreaDrag(e,key,'resize',h));box.addEventListener('click',e=>{e.stopPropagation();setSelectedArea(key)});});setSelectedArea(SELECTED_AREA)}
+function persistEntry(entry,x,y,r){if(entry.a){MADD[entry.i]={id:entry.id,x:Math.round(x),y:Math.round(y),r:Math.max(8,Math.round(r))};svADD()}else{const b=PP[entry.i];MOV[entry.i]={x:Math.round(x),y:Math.round(y),r:Math.max(8,Math.round(r))};if(MOV[entry.i].x===b.x&&MOV[entry.i].y===b.y&&MOV[entry.i].r===(b.r||32))delete MOV[entry.i];svMOV()}}
+function startDrag(e,m,entry,mode='move'){if(e.button!==undefined&&e.button!==0)return;e.preventDefault();e.stopPropagation();hideTT();setSelected(keyFor(entry));const svg=document.getElementById('garden-svg');const pt=svgPt(e,svg);const x=rawToView(entry.x),y=rawToViewY(entry.y),r=entry.r*MCFG.rs;let useMode=mode;if(mode==='auto'){const d=Math.hypot(pt.x-x,pt.y-y);const edgeBand=Math.max(7,Math.min(14,r*.33));useMode=Math.abs(d-r)<=edgeBand?'resize':'move'}DRAG={m,entry,mode:useMode,dx:pt.x-x,dy:pt.y-y,cx:x,cy:y,rr:r};m.classList.add('dragging');try{m.setPointerCapture&&m.setPointerCapture(e.pointerId)}catch{}}
+function onDragMove(e){if(!DRAG)return;const svg=document.getElementById('garden-svg');const pt=svgPt(e,svg);if(DRAG.kind==='area'){const dxRaw=viewToRawX(pt.x)-viewToRawX(DRAG.startPx);const dyRaw=viewToRawY(pt.y)-viewToRawY(DRAG.startPy);const next={x:DRAG.startX,y:DRAG.startY,w:DRAG.startW,h:DRAG.startH};if(DRAG.mode==='move'){next.x=DRAG.startX+dxRaw;next.y=DRAG.startY+dyRaw}else{next.w=Math.max(60,DRAG.startW+dxRaw);next.h=Math.max(40,DRAG.startH+dyRaw)}const g=document.querySelector(`.area-box[data-area-key="${DRAG.key}"]`);if(g)setAreaXY(g,next);DRAG.current=next;return}if(DRAG.kind==='note'){const dxRaw=viewToRawX(pt.x)-viewToRawX(DRAG.startPx);const dyRaw=viewToRawY(pt.y)-viewToRawY(DRAG.startPy);const next={x:DRAG.startX,y:DRAG.startY,w:DRAG.startW,h:DRAG.startH,t:NOTES[DRAG.k]?.t||'Note'};if(DRAG.mode==='move'){next.x=DRAG.startX+dxRaw;next.y=DRAG.startY+dyRaw}else{next.w=Math.max(170,DRAG.startW+dxRaw);next.h=Math.max(56,DRAG.startH+dyRaw)}const g=document.querySelector(`.note-item[data-note-key="${DRAG.k}"]`);if(g)setNoteXY(g,{...next,k:DRAG.k});DRAG.currentNote=next;return}if(DRAG.kind==='lawnLabel'){LAWN_LABEL={x:DRAG.startX+(viewToRawX(pt.x)-viewToRawX(DRAG.startPx)),y:DRAG.startY+(viewToRawY(pt.y)-viewToRawY(DRAG.startPy))};renderLawnBorder();return}if(DRAG.kind==='lawnPoint'){LAWN_BORDER_POINTS[DRAG.idx]={x:DRAG.startX+(viewToRawX(pt.x)-viewToRawX(DRAG.startPx)),y:DRAG.startY+(viewToRawY(pt.y)-viewToRawY(DRAG.startPy))};renderLawnBorder();return}if(DRAG.kind==='mockLineEnd'){const dxRaw=viewToRawX(pt.x)-viewToRawX(DRAG.startPx);const dyRaw=viewToRawY(pt.y)-viewToRawY(DRAG.startPy);const next={...DRAG.startLine};if(DRAG.end==='a'){next.x1=DRAG.startLine.x1+dxRaw;next.y1=DRAG.startLine.y1+dyRaw}else{next.x2=DRAG.startLine.x2+dxRaw;next.y2=DRAG.startLine.y2+dyRaw}const g=document.querySelector(`.mock-line-group[data-line-key="${DRAG.key}"]`);if(g)setMockLineXY(g,next);DRAG.currentLine=next;return}if(DRAG.mode==='move'){const vx=pt.x-DRAG.dx,vy=pt.y-DRAG.dy;const rx=viewToRawX(vx),ry=viewToRawY(vy);DRAG.entry.x=rx;DRAG.entry.y=ry;setMXY(DRAG.m,vx,vy,DRAG.entry.r*MCFG.rs)}else{const dx=pt.x-DRAG.cx,dy=pt.y-DRAG.cy;const vr=Math.max(8,Math.sqrt(dx*dx+dy*dy));const rr=vr/MCFG.rs;DRAG.entry.r=rr;setMXY(DRAG.m,DRAG.cx,DRAG.cy,vr)}}
+function onDragEnd(){if(!DRAG)return;if(DRAG.kind==='area'){if(DRAG.current){pushUndo();persistArea(DRAG.key,DRAG.current)}DRAG=null;renderAreas();return}if(DRAG.kind==='note'){if(DRAG.currentNote&&NOTES[DRAG.k]){pushUndo();NOTES[DRAG.k]={...NOTES[DRAG.k],x:Math.round(DRAG.currentNote.x),y:Math.round(DRAG.currentNote.y),w:Math.round(DRAG.currentNote.w),h:Math.round(DRAG.currentNote.h)};svNOTE()}if(DRAG.targetItem?.classList)DRAG.targetItem.classList.remove('adjusting');DRAG=null;renderNotes();return}if(DRAG.kind==='lawnLabel'){pushUndo();svLL();DRAG=null;return}if(DRAG.kind==='lawnPoint'){pushUndo();svLB();DRAG=null;return}if(DRAG.kind==='mockLineEnd'){if(DRAG.currentLine){pushUndo();persistMockLine(DRAG.key,DRAG.currentLine)}DRAG=null;renderMockLines();return}DRAG.m.classList.remove('dragging');pushUndo();persistEntry(DRAG.entry,DRAG.entry.x,DRAG.entry.y,DRAG.entry.r);DRAG=null}
+window.addEventListener('pointermove',onDragMove);
+window.addEventListener('pointerup',onDragEnd);
+window.addEventListener('pointercancel',onDragEnd);
+function markerEntries(){const out=[];PP.forEach((pos,idx)=>{if(MDEL[idx])return;const o=MOV[idx]||{};out.push({a:false,i:idx,id:pos.id,x:o.x??pos.x,y:o.y??pos.y,r:o.r??(pos.r||32)})});MADD.forEach((m,idx)=>{if(!m)return;out.push({a:true,i:idx,id:m.id,x:m.x,y:m.y,r:m.r||32})});return out}
+function delEntryByKey(k){if(!k||!ENT[k])return;pushUndo();const e=ENT[k];if(e.a){MADD[e.i]=null;svADD()}else{MDEL[e.i]=1;delete MOV[e.i];svDEL();svMOV()}if(SELECTED===k)SELECTED=null;renderMarkers()}
+function cloneEntryByKey(k){if(!k||!ENT[k])return;pushUndo();const e=ENT[k];const n={id:e.id,x:Math.round(e.x+24),y:Math.round(e.y+24),r:Math.max(8,Math.round(e.r))};MADD.push(n);svADD();renderMarkers()}
+function hideClonePrompt(){const m=document.getElementById('clone-menu');if(!m)return;m.classList.remove('open');PENDING_CLONE_KEY=null}
+function showClonePrompt(k,cx,cy){const m=document.getElementById('clone-menu');if(!m)return;PENDING_CLONE_KEY=k;m.style.left=`${Math.min(window.innerWidth-150,Math.max(8,cx))}px`;m.style.top=`${Math.min(window.innerHeight-70,Math.max(8,cy))}px`;m.classList.add('open')}
+function renderMarkers(){const g=document.getElementById('plant-markers');g.innerHTML='';ENT={};markerEntries().forEach(entry=>{const p=P[entry.id];if(!p)return;const x=rawToView(entry.x),y=rawToViewY(entry.y),r=entry.r*MCFG.rs;const k=keyFor(entry);ENT[k]=entry;const m=document.createElementNS('http://www.w3.org/2000/svg','g');m.classList.add('plant-marker');m.dataset.plantId=entry.id;m.dataset.key=k;const ri=document.createElementNS('http://www.w3.org/2000/svg','circle');ri.setAttribute('cx',x);ri.setAttribute('cy',y);ri.setAttribute('r',r+4);ri.setAttribute('fill','none');ri.setAttribute('stroke',p.c);ri.setAttribute('stroke-width','2.5');ri.setAttribute('opacity','0.5');ri.classList.add('marker-ring');const ci=document.createElementNS('http://www.w3.org/2000/svg','circle');ci.setAttribute('cx',x);ci.setAttribute('cy',y);ci.setAttribute('r',r);ci.setAttribute('fill',p.c);ci.setAttribute('stroke',dc(p.c,30));ci.setAttribute('stroke-width','1.5');ci.setAttribute('opacity','0.72');const tx=document.createElementNS('http://www.w3.org/2000/svg','text');tx.setAttribute('x',x);tx.setAttribute('y',y+1);tx.setAttribute('text-anchor','middle');tx.setAttribute('dominant-baseline','central');tx.setAttribute('font-size',r>24?'20':'16');tx.setAttribute('font-weight','700');tx.setAttribute('fill',cc(p.c));tx.setAttribute('pointer-events','none');const _dn=planDisplayNum(entry.id);tx.textContent=_dn!=null?String(_dn):String(entry.id);const dx=document.createElementNS('http://www.w3.org/2000/svg','g');dx.classList.add('delete-handle');dx.setAttribute('transform',`translate(${x+r*.78} ${y-r*.78})`);const dxc=document.createElementNS('http://www.w3.org/2000/svg','circle');dxc.classList.add('delete-dot');dxc.setAttribute('cx','0');dxc.setAttribute('cy','0');dxc.setAttribute('r','14');dxc.setAttribute('fill','#fff');dxc.setAttribute('stroke','#111');dxc.setAttribute('stroke-width','2.2');const l1=document.createElementNS('http://www.w3.org/2000/svg','line');l1.classList.add('delete-x-line');l1.setAttribute('x1','-5.6');l1.setAttribute('y1','-5.6');l1.setAttribute('x2','5.6');l1.setAttribute('y2','5.6');const l2=document.createElementNS('http://www.w3.org/2000/svg','line');l2.classList.add('delete-x-line');l2.setAttribute('x1','5.6');l2.setAttribute('y1','-5.6');l2.setAttribute('x2','-5.6');l2.setAttribute('y2','5.6');dx.appendChild(dxc);dx.appendChild(l1);dx.appendChild(l2);m.appendChild(ri);m.appendChild(ci);m.appendChild(tx);m.appendChild(dx);g.appendChild(m);m.addEventListener('pointerdown',e=>{if(e.button===2||(e.ctrlKey&&e.button===0)){e.preventDefault();e.stopPropagation();showClonePrompt(k,e.clientX,e.clientY);return}hideClonePrompt();startDrag(e,m,entry,'auto')});dx.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();hideClonePrompt();delEntryByKey(k)});m.addEventListener('click',e=>{e.stopPropagation();setSelected(k)});m.addEventListener('contextmenu',e=>{e.preventDefault();e.stopPropagation()});m.addEventListener('mouseenter',e=>{if(!DRAG)showTT(entry.id,e)});m.addEventListener('mousemove',e=>{if(!DRAG)moveTT(e)});m.addEventListener('mouseleave',()=>{if(!DRAG)hideTT()})});setSelected(SELECTED)}
+function renderLegend(){const l=document.getElementById('legend-list');l.innerHTML='';activePlanPlantEntries().forEach(([id,p])=>{const num=planDisplayNum(+id);const d=document.createElement('div');d.className='legend-item';d.innerHTML=`<span class="legend-swatch" style="background:${p.c}"></span><span class="legend-num">${num}.</span><span class="legend-name">${p.n}</span>`;d.addEventListener('mouseenter',e=>{hlP(+id);showTT(+id,e)});d.addEventListener('mousemove',moveTT);d.addEventListener('mouseleave',()=>{uhlP(+id);hideTT()});l.appendChild(d)})}
+function hlP(id){document.querySelectorAll('.plant-marker').forEach(m=>{if(+m.dataset.plantId===id)m.classList.add('hl')})}
+function uhlP(id){document.querySelectorAll('.plant-marker').forEach(m=>{if(+m.dataset.plantId===id)m.classList.remove('hl')})}
+const tt=document.getElementById('plant-tooltip');
+async function showTT(id,ev){const p=P[id];if(!p)return;const dnum=planDisplayNum(id);document.getElementById('tooltip-name').textContent=dnum!=null?`${dnum}. ${p.n}`:p.n;document.getElementById('tooltip-botanical').textContent=p.b+(p.cv?' '+p.cv:'');document.getElementById('tooltip-details').innerHTML=`<span class="detail-label">Size</span><span class="detail-value">${p.s}</span><span class="detail-label">Light</span><span class="detail-value">${p.l}</span><span class="detail-label">Bloom</span><span class="detail-value">${p.bt}</span><span class="detail-label">Color</span><span class="detail-value">${p.bc}</span><span class="detail-label">Zone</span><span class="detail-value">${p.z}</span><span class="detail-label">Type</span><span class="detail-value">${p.t}</span>`;document.getElementById('tooltip-badges').innerHTML=badges(p);const iw=document.getElementById('tooltip-img-wrap');iw.style.background=p.bh||p.c;iw.innerHTML='<div class="tooltip-img-placeholder">&#127793;</div>';const u=await resolvePlantImg(id,p);if(u)iw.innerHTML=`<img src="${u}" alt="${p.n}" onerror="this.parentNode.innerHTML='<div class=tooltip-img-placeholder>&#127793;</div>'">`;moveTT(ev);tt.classList.add('visible')}
+function moveTT(e){const pad=16;let x=e.clientX+pad,y=e.clientY+pad;if(x+300>window.innerWidth-pad)x=e.clientX-300-pad;if(y+(tt.offsetHeight||320)>window.innerHeight-pad)y=e.clientY-(tt.offsetHeight||320)-pad;if(x<pad)x=pad;if(y<pad)y=pad;tt.style.left=x+'px';tt.style.top=y+'px'}
+function hideTT(){tt.classList.remove('visible')}
+function exportJSONData(){return markerEntries().map(e=>({id:e.id,x:Math.round(e.x),y:Math.round(e.y),r:Math.max(8,Math.round(e.r))}))}
+function downloadJSON(filename,data){const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function toggleSettingsMenu(open){const m=document.getElementById('settings-menu');if(!m)return;m.classList.toggle('open',open??!m.classList.contains('open'))}
+function buildPlantRadioList(){const wrap=document.getElementById('plant-radio-list');const rows=activePlanPlantEntries();const first=rows[0]?.[0];wrap.innerHTML=rows.map(([id,p])=>{const num=planDisplayNum(+id);return`<label class="plant-option"><input type="radio" name="plant-choice" value="${id}" ${id===first?'checked':''}><span>${num}. ${p.n}</span></label>`}).join('')}
+function openPlantModal(){buildPlantRadioList();document.getElementById('plant-modal-backdrop').classList.add('open')}
+function closePlantModal(){document.getElementById('plant-modal-backdrop').classList.remove('open')}
+function setAddMode(on,msg){ADDMODE=!!on;if(ADDMODE)NOTEMODE=false;const hint=document.getElementById('add-hint');if(ADDMODE||NOTEMODE){hint.style.display='inline-block';if(msg)hint.textContent=msg}else{hint.style.display='none'}}
+function setNoteMode(on,msg){NOTEMODE=!!on;if(NOTEMODE)ADDMODE=false;const hint=document.getElementById('add-hint');if(ADDMODE||NOTEMODE){hint.style.display='inline-block';if(msg)hint.textContent=msg}else{hint.style.display='none'}}
+function importJSONData(obj){if(!Array.isArray(obj))throw new Error('JSON must be an array of marker objects');pushUndo();MADD=[];MDEL={};MOV={};obj.forEach((m,i)=>{if(!m||typeof m.id!=='number')return;MADD[i]={id:Math.max(1,Math.min(MAX_PLANT_ID,Math.round(m.id))),x:Math.round(Number(m.x)||0),y:Math.round(Number(m.y)||0),r:Math.max(8,Math.round(Number(m.r)||32))}});svADD();svDEL();svMOV();SELECTED=null;renderMarkers()}
+function initEditor(){document.getElementById('add-plant').addEventListener('click',()=>openPlantModal());document.getElementById('add-note')?.addEventListener('click',()=>setNoteMode(true,'Click map to place note'));document.getElementById('undo-btn')?.addEventListener('click',()=>undoLast());document.getElementById('plant-modal-cancel').addEventListener('click',()=>closePlantModal());document.getElementById('plant-modal-confirm').addEventListener('click',()=>{const picked=document.querySelector('input[name=\"plant-choice\"]:checked');if(!picked)return;PENDING_PLANT_ID=Math.max(1,Math.min(MAX_PLANT_ID,parseInt(picked.value,10)||1));closePlantModal();setAddMode(true,'Click map to place plant')});document.getElementById('settings-btn').addEventListener('click',e=>{e.stopPropagation();toggleSettingsMenu()});document.addEventListener('click',e=>{toggleSettingsMenu(false);hideClonePrompt();setSelectedArea(null);setSelected(null);setSelectedNote(null);const inLawnEditor=!!e.target.closest('#lawn-border-layer');if(inLawnEditor){LAWN_EDITING=true}else{SELECTED_MOCK_LINE=null;LAWN_EDITING=false;SELECTED_LAWN_POINT=null}renderMockLines();renderLawnBorder()});document.getElementById('clone-confirm').addEventListener('click',e=>{e.stopPropagation();if(PENDING_CLONE_KEY)cloneEntryByKey(PENDING_CLONE_KEY);hideClonePrompt()});document.getElementById('export-json').addEventListener('click',()=>{downloadJSON('marker-points.json',exportJSONData());toggleSettingsMenu(false);const b=document.getElementById('export-json');b.textContent='Exported';setTimeout(()=>b.textContent='Export JSON',900)});document.getElementById('import-json').addEventListener('click',()=>{toggleSettingsMenu(false);document.getElementById('import-json-file').click()});document.getElementById('import-json-file').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{const txt=await f.text();importJSONData(JSON.parse(txt))}catch(err){alert('Could not import JSON: '+err.message)}e.target.value=''});const svg=document.getElementById('garden-svg');const mapContainer=document.querySelector('.garden-map-container');document.addEventListener('contextmenu',e=>{const inMap=mapContainer&&mapContainer.contains(e.target);const inClone=!!e.target.closest('#clone-menu');if(!inMap&&!inClone)return;e.preventDefault();e.stopPropagation();const marker=e.target.closest('.plant-marker');if(marker?.dataset?.key){showClonePrompt(marker.dataset.key,e.clientX,e.clientY)}else if(inMap){hideClonePrompt()}},true);svg.addEventListener('pointerdown',e=>{if(!ADDMODE&&!NOTEMODE)return;if(e.target.closest('.plant-marker')||e.target.closest('.area-box')||e.target.closest('.note-item')||e.target.closest('.lawn-point')||e.target.closest('#lawn-border-path')||e.target.closest('.mock-line-group'))return;const pt=svgPt(e,svg);if(ADDMODE){const id=PENDING_PLANT_ID??1;pushUndo();MADD.push({id,x:Math.round(viewToRawX(pt.x)),y:Math.round(viewToRawY(pt.y)),r:32});svADD();setAddMode(false);PENDING_PLANT_ID=null;renderMarkers();return}if(NOTEMODE){pushUndo();const nk=createNoteAt(Math.round(viewToRawX(pt.x)),Math.round(viewToRawY(pt.y)),'Type note...');setNoteMode(false);setTimeout(()=>{const ed=document.querySelector(`.note-item[data-note-key="${nk}"] .note-editor`);if(ed){ed.focus();try{document.execCommand('selectAll',false,null)}catch{}}},0);return}});document.addEventListener('dblclick',e=>{const keep=e.target.closest('.plant-marker')||e.target.closest('.area-box')||e.target.closest('.note-item')||e.target.closest('#lawn-border-layer')||e.target.closest('.mock-line-group')||e.target.closest('#clone-menu');if(keep)return;hideClonePrompt();setSelected(null);setSelectedArea(null);setSelectedNote(null);SELECTED_MOCK_LINE=null;LAWN_EDITING=false;SELECTED_LAWN_POINT=null;renderMockLines();renderLawnBorder()});document.getElementById('lawn-border-label')?.addEventListener('pointerdown',startLawnLabelDrag);document.getElementById('lawn-border-path')?.addEventListener('pointerdown',e=>{if(e.button!==0)return;e.preventDefault();e.stopPropagation();LAWN_EDITING=true;renderLawnBorder()});document.getElementById('lawn-border-path')?.addEventListener('dblclick',e=>{if(e.button!==0)return;e.preventDefault();e.stopPropagation();LAWN_EDITING=true;const idx=addLawnPointAtClient(e.clientX,e.clientY);startLawnPointDrag(e,idx)});document.getElementById('plant-modal-backdrop').addEventListener('click',e=>{if(e.target.id==='plant-modal-backdrop')closePlantModal()});document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&e.key.toLowerCase()==='z'){e.preventDefault();undoLast();return}if(e.key==='Escape'){closePlantModal();setAddMode(false);setNoteMode(false);hideClonePrompt();setSelected(null);setSelectedArea(null);setSelectedNote(null);SELECTED_MOCK_LINE=null;LAWN_EDITING=false;SELECTED_LAWN_POINT=null;renderMockLines();renderLawnBorder()}if(e.key==='Delete'||e.key==='Backspace'){if(SELECTED)delEntryByKey(SELECTED);else if(SELECTED_AREA)deleteAreaByKey(SELECTED_AREA);else if(SELECTED_NOTE)deleteNoteByKey(SELECTED_NOTE);else if(SELECTED_LAWN_POINT!==null)removeLawnPoint(SELECTED_LAWN_POINT)}})}
+function renderGuide(){const g=document.getElementById('plant-guide-grid');g.innerHTML='';activePlanPlantEntries().forEach(([id,p])=>{const num=planDisplayNum(+id);const c=document.createElement('div');c.className='plant-card';c.id=`plant-card-${id}`;c.innerHTML=`<div class="plant-card-img-placeholder" style="background:${p.bh||p.c}" data-pid="${id}" data-name="${p.n}">&#127793;</div><div class="plant-card-body"><div class="plant-card-header"><span class="plant-card-num">${num}</span><span class="plant-card-name">${p.n}</span></div><div class="plant-card-botanical">${p.b}${p.cv?' '+p.cv:''}</div><dl class="plant-card-details"><dt>Size</dt><dd>${p.s}</dd><dt>Light</dt><dd>${p.l}</dd><dt>Bloom</dt><dd>${p.bt}</dd><dt>Color</dt><dd>${p.bc}</dd><dt>Foliage</dt><dd>${p.f}</dd><dt>Zone</dt><dd>${p.z}</dd><dt>Type</dt><dd>${p.t}</dd></dl><div class="plant-card-badges">${badges(p)}</div><p class="plant-card-desc">${p.no}</p></div>`;g.appendChild(c)});loadCI()}
+async function loadCI(){for(const el of document.querySelectorAll('.plant-card-img-placeholder[data-pid]')){const pid=+el.dataset.pid;const p=P[el.dataset.pid];if(!p)continue;let u=await resolvePlantImg(pid,p);if(!u)continue;const img=document.createElement('img');img.className='plant-card-img';img.src=u;img.alt=el.dataset.name;img.onload=()=>el.replaceWith(img);img.onerror=async()=>{img.remove();if(!LOCAL_IMG_BY_PLANT_ID[pid]||u!==LOCAL_IMG_BY_PLANT_ID[pid])return;const v=await fPI(p);if(!v)return;const i2=document.createElement('img');i2.className='plant-card-img';i2.src=v;i2.alt=el.dataset.name;i2.onload=()=>el.replaceWith(i2)}}}
+document.querySelectorAll('.tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));tab.classList.add('active');document.getElementById(`panel-${tab.dataset.tab}`).classList.add('active')})});
+(async()=>{initLocalPlantImages();ldMOV();ldADD();ldDEL();ldAREA();ldNOTE();ldLL();ldLB();ldML();pf();renderLawnBorder();renderMockLines();renderAreas();renderNotes();renderMarkers();renderLegend();renderGuide();initEditor();updateUndoUI()})();
+</script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+[
+  {
+    "id": 1,
+    "slug": "hydrangea",
+    "file": "images/01-hydrangea.jpg",
+    "status": "cached"
+  },
+  {
+    "id": 2,
+    "slug": "japanese-maple",
+    "file": "images/02-japanese-maple.jpg",
+    "status": "cached"
+  },
+  {
+    "id": 3,
+    "slug": "azalea",
+    "file": null,
+    "status": "error: HTTP Error 429: Use thumbnail steps listed on https://w.wiki/GHai. Please contact noc@wikimedia.org for further information (a765913)",
+    "strategy": "url"
+  },
+  {
+    "id": 4,
+    "slug": "rose-darlow",
+    "file": "images/04-rose-darlow.jpg",
+    "status": "ok",
+    "source": "https://inaturalist-open-data.s3.amazonaws.com/photos/10029907/medium.jpg",
+    "strategy": "inat"
+  },
+  {
+    "id": 5,
+    "slug": "eupatorium",
+    "file": "images/05-eupatorium.jpg",
+    "status": "ok",
+    "source": "https://inaturalist-open-data.s3.amazonaws.com/photos/85646014/medium.jpeg",
+    "strategy": "inat"
+  },
+  {
+    "id": 6,
+    "slug": "ghost-fern",
+    "file": "images/06-ghost-fern.jpg",
+    "status": "cached"
+  },
+  {
+    "id": 7,
+    "slug": "astilbe",
+    "file": "images/07-astilbe.jpg",
+    "status": "ok",
+    "source": "https://inaturalist-open-data.s3.amazonaws.com/photos/28228495/medium.jpeg",
+    "strategy": "inat"
+  },
+  {
+    "id": 8,
+    "slug": "peony",
+    "file": null,
+    "status": "error: HTTP Error 429: Use thumbnail steps listed on https://w.wiki/GHai. Please contact noc@wikimedia.org for further information (a765913)",
+    "strategy": "url"
+  },
+  {
+    "id": 9,
+    "slug": "solomons-seal",
+    "file": "images/09-solomons-seal.jpg",
+    "status": "cached"
+  },
+  {
+    "id": 10,
+    "slug": "hosta",
+    "file": "images/10-hosta.jpg",
+    "status": "ok",
+    "source": "https://inaturalist-open-data.s3.amazonaws.com/photos/34202/medium.jpg",
+    "strategy": "inat"
+  },
+  {
+    "id": 11,
+    "slug": "hakone-grass",
+    "file": null,
+    "status": "error: HTTP Error 429: Use thumbnail steps listed on https://w.wiki/GHai. Please contact noc@wikimedia.org for further information (a765913)",
+    "strategy": "url"
+  },
+  {
+    "id": 12,
+    "slug": "cimicifuga",
+    "file": "images/12-cimicifuga.jpg",
+    "status": "ok",
+    "source": "https://inaturalist-open-data.s3.amazonaws.com/photos/93111/medium.jpg",
+    "strategy": "inat"
+  },
+  {
+    "id": 13,
+    "slug": "bleeding-heart",
+    "file": "images/13-bleeding-heart.jpg",
+    "status": "ok",
+    "source": "https://inaturalist-open-data.s3.amazonaws.com/photos/487625794/medium.jpg",
+    "strategy": "inat"
+  },
+  {
+    "id": 14,
+    "slug": "columbine",
+    "file": "images/14-columbine.jpg",
+    "status": "ok",
+    "source": "https://inaturalist-open-data.s3.amazonaws.com/photos/503013812/medium.jpeg",
+    "strategy": "inat"
+  },
+  {
+    "id": 15,
+    "slug": "thalictrum",
+    "file": "images/cotton_candy_meadow_rue.jpg",
+    "status": "ok",
+    "source": "https://inaturalist-open-data.s3.amazonaws.com/photos/356908993/medium.jpeg",
+    "strategy": "inat"
+  },
+  {
+    "id": 16,
+    "slug": "tiarella",
+    "file": null,
+    "status": "error: 'NoneType' object has no attribute 'get'",
+    "strategy": "inat"
+  },
+  {
+    "id": 17,
+    "slug": "bloodroot",
+    "file": "images/17-bloodroot.jpg",
+    "status": "ok",
+    "source": "https://inaturalist-open-data.s3.amazonaws.com/photos/1862384/medium.jpg",
+    "strategy": "inat"
+  },
+  {
+    "id": 18,
+    "slug": "wild-ginger",
+    "file": "images/18-wild-ginger.jpg",
+    "status": "ok",
+    "source": "https://inaturalist-open-data.s3.amazonaws.com/photos/842419/medium.jpg",
+    "strategy": "inat"
+  },
+  {
+    "id": 19,
+    "slug": "penstemon",
+    "file": "images/19-penstemon.jpg",
+    "status": "ok",
+    "source": "https://inaturalist-open-data.s3.amazonaws.com/photos/200036822/medium.jpeg",
+    "strategy": "inat"
+  },
+  {
+    "id": 20,
+    "slug": "heart-aster",
+    "file": "images/20-heart-aster.jpg",
+    "status": "ok",
+    "source": "https://inaturalist-open-data.s3.amazonaws.com/photos/234797159/medium.jpeg",
+    "strategy": "inat"
+  },
+  {
+    "id": 21,
+    "slug": "anemone",
+    "file": "images/21-anemone.jpg",
+    "status": "ok",
+    "source": "https://inaturalist-open-data.s3.amazonaws.com/photos/166429003/medium.jpeg",
+    "strategy": "inat"
+  },
+  {
+    "id": 35,
+    "slug": "pieris-japonica",
+    "file": null,
+    "status": "pending",
+    "strategy": "url"
+  }
+]
